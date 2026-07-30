@@ -1,294 +1,218 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowDown,
-  ArrowRight,
   CalendarDays,
-  Check,
+  Camera,
   ChevronRight,
   Crown,
-  Flag,
   Gem,
-  HeartHandshake,
+  MapPin,
   Menu,
-  PawPrint,
-  ScrollText,
-  ShieldCheck,
-  Sparkles,
+  ShieldAlert,
+  Snowflake,
   Swords,
   Target,
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import Snowfall from "@/components/snowfall";
+import {
+  DEFAULT_SITE_DATA,
+  type SiteData,
+  type SiteEvent,
+} from "@/lib/site-data";
 
-type Countdown = {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  ended: boolean;
-};
+type Parts = { days: number; hours: number; minutes: number; seconds: number };
 
-const events = [
-  {
-    id: "svs",
-    title: "跨区国战",
-    short: "国战",
-    date: "2026-08-08T19:00:00+08:00",
-    displayDate: "08.08",
-    icon: Swords,
-    tone: "coral",
-    detail: "备战期结束 · 19:00 开战",
-  },
-  {
-    id: "progress",
-    title: "新游戏进程",
-    short: "新进程",
-    date: "2026-08-17T00:00:00+08:00",
-    displayDate: "08.17",
-    icon: Flag,
-    tone: "cyan",
-    detail: "新阶段内容开放",
-  },
-  {
-    id: "expert",
-    title: "新专家登场",
-    short: "新专家",
-    date: "2026-08-24T00:00:00+08:00",
-    displayDate: "08.24",
-    icon: Sparkles,
-    tone: "violet",
-    detail: "专家系统更新",
-  },
-  {
-    id: "pet",
-    title: "新宠物开放",
-    short: "新宠物",
-    date: "2026-08-31T00:00:00+08:00",
-    displayDate: "08.31",
-    icon: PawPrint,
-    tone: "amber",
-    detail: "宠物代际更新",
-  },
-];
+type Photo = { key: string; name: string };
 
-const timeline = [
-  {
-    date: "08.01",
-    label: "备战动员",
-    title: "国战资源申报开启",
-    copy: "提交本轮资源计划与目标档位，管理组汇总后公示。",
-    status: "即将开始",
-  },
-  {
-    date: "08.08",
-    label: "跨区战事",
-    title: "国战 · 王城争夺",
-    copy: "18:30 集结，19:00 开战。统一频道指挥，优先保障主力车头。",
-    status: "重点事件",
-  },
-  {
-    date: "08.17",
-    label: "版本进程",
-    title: "新阶段内容开放",
-    copy: "开放节奏、资源建议和养成优先级将在前一周发布。",
-    status: "预计",
-  },
-  {
-    date: "08.24",
-    label: "养成更新",
-    title: "新专家 / 新宠物窗口",
-    copy: "不要求追满。先看收益曲线，再决定个人投入节奏。",
-    status: "预计",
-  },
-];
-
-const ruleGroups = [
-  {
-    id: "resources",
-    label: "资源分配",
-    icon: Gem,
-    eyebrow: "STATE ASSETS",
-    title: "公共资源，按贡献与需求流转",
-    lead: "城池、官职和限量资源属于全区，不属于任何单一联盟或个人。",
-    rules: [
-      "固定资产实行轮换制，排期提前一轮公示",
-      "稀缺资源优先补齐国战关键岗位，不以战力高低一刀切",
-      "所有临时调整必须留下原因、经手人与复核时间",
-    ],
-    note: "分配表将在每轮活动结束后 24 小时内更新。",
-  },
-  {
-    id: "ranking",
-    label: "小榜规则",
-    icon: Target,
-    eyebrow: "RANKING RULES",
-    title: "提前报备，分档竞争，避免内耗",
-    lead: "小榜不是抢跑比赛。先报名、再分档、后确认，保护长期积累。",
-    rules: [
-      "冲榜前在指定频道报备目标名次与可用资源",
-      "同档位多人冲突时，按轮换记录与资源效率协调",
-      "恶意抬分、临时截榜、代打破坏排期将失去下轮优先权",
-    ],
-    note: "未报备玩家可正常参与，但不享受管理协调与资源补偿。",
-  },
-  {
-    id: "privilege",
-    label: "管理特权",
-    icon: Crown,
-    eyebrow: "LEADERSHIP",
-    title: "管理没有额外收益，只有更高责任",
-    lead: "权限只用于提升执行效率，不用于为个人、亲友或所属联盟谋利。",
-    rules: [
-      "管理成员同样遵守轮换、报备与冲榜规则",
-      "涉及本人或本盟利益时必须回避，由其他成员复核",
-      "连续两次缺席职责或一次严重滥权，立即冻结权限并公示",
-    ],
-    note: "任何玩家都可以申请查看决策依据并提出复议。",
-  },
-];
-
-const values = [
-  {
-    number: "01",
-    title: "长期主义",
-    copy: "我们更在意半年后还有多少人愿意一起玩，而不是今天多拿一档奖励。",
-  },
-  {
-    number: "02",
-    title: "规则透明",
-    copy: "重要规则提前写清、变更留下记录、决策允许复议。",
-  },
-  {
-    number: "03",
-    title: "尊重差异",
-    copy: "重氪、微氪、零氪都有自己的节奏；贡献不只有战力一种形式。",
-  },
-  {
-    number: "04",
-    title: "对外团结",
-    copy: "区内可以讨论，战场必须协同。赢得有章法，输得有风度。",
-  },
-];
-
-function getCountdown(target: string): Countdown {
-  const distance = new Date(target).getTime() - Date.now();
-  if (distance <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, ended: true };
-  }
-
+function diffParts(from: number, to: number): Parts {
+  const distance = Math.max(0, to - from);
   return {
     days: Math.floor(distance / 86_400_000),
     hours: Math.floor((distance / 3_600_000) % 24),
     minutes: Math.floor((distance / 60_000) % 60),
     seconds: Math.floor((distance / 1_000) % 60),
-    ended: false,
   };
 }
 
-function useCountdown(target: string) {
-  const [countdown, setCountdown] = useState<Countdown>(() => ({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-    ended: false,
-  }));
-
+function useNow() {
+  const [now, setNow] = useState(0);
   useEffect(() => {
-    const update = () => setCountdown(getCountdown(target));
-    update();
-    const timer = window.setInterval(update, 1000);
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [target]);
-
-  return countdown;
+  }, []);
+  return now;
 }
 
 function Pad({ value }: { value: number }) {
   return String(value).padStart(2, "0");
 }
 
-function PrimaryCountdown() {
-  const countdown = useCountdown(events[0].date);
-
+function Units({ parts }: { parts: Parts }) {
   return (
-    <div className="hero-countdown" aria-live="polite">
-      <div className="countdown-heading">
-        <span className="live-dot" />
-        <span>距离下一场跨区国战</span>
-        <span className="demo-tag">示例档期</span>
-      </div>
-      <div className="countdown-grid">
-        {[
-          ["天", countdown.days],
-          ["时", countdown.hours],
-          ["分", countdown.minutes],
-          ["秒", countdown.seconds],
-        ].map(([label, value]) => (
-          <div className="countdown-unit" key={label}>
-            <strong><Pad value={Number(value)} /></strong>
-            <span>{label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="countdown-meta">
-        <span><CalendarDays size={15} /> 2026.08.08 周六 19:00</span>
-        <span><Swords size={15} /> 集结时间 18:30</span>
-      </div>
+    <div className='units'>
+      {(
+        [
+          ["天", parts.days],
+          ["时", parts.hours],
+          ["分", parts.minutes],
+          ["秒", parts.seconds],
+        ] as const
+      ).map(([label, value]) => (
+        <div className='unit' key={label}>
+          <strong>
+            <Pad value={value} />
+          </strong>
+          <span>{label}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function EventCountdown({ event }: { event: (typeof events)[number] }) {
-  const countdown = useCountdown(event.date);
-  const Icon = event.icon;
+function EventTimer({ event, now }: { event: SiteEvent; now: number }) {
+  const target = new Date(event.date).getTime();
+  const countingDown = event.type === "countdown" && now < target;
+  const parts = diffParts(
+    countingDown ? now : Math.min(target, now),
+    countingDown ? target : Math.max(target, now),
+  );
 
   return (
-    <article className={`event-card tone-${event.tone}`}>
-      <div className="event-icon"><Icon size={19} /></div>
-      <div className="event-copy">
-        <span>{event.title}</span>
-        <strong>{countdown.ended ? "已开启" : `${countdown.days}天 ${String(countdown.hours).padStart(2, "0")}时`}</strong>
-        <small>{event.detail}</small>
+    <article
+      className={event.highlight ? "event-tile is-highlight" : "event-tile"}
+    >
+      <div className='event-tile-top'>
+        <span className='event-kind'>
+          {event.type === "countdown" ? "倒计时" : "正计时"}
+        </span>
+        {event.highlight && <span className='event-flag'>重点事件</span>}
       </div>
-      <div className="event-date">{event.displayDate}</div>
+      <h3>{event.title || "未命名事件"}</h3>
+      {now > 0 && <Units parts={parts} />}
+      <p className='event-meta'>
+        <CalendarDays size={13} />
+        {new Date(event.date).toLocaleString("zh-CN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+        {event.note && <em>{event.note}</em>}
+      </p>
+    </article>
+  );
+}
+
+const minorRules = [
+  "非备战期间，或与备战活动不重叠的军备、士官、野兽、冻土日榜等等小榜，个人积分不得超过保底分的 5 倍。",
+  "所有小榜活动中，上期备战排行榜前 20 名成员，优先预约前 5 名，轮流不连拿。名额不满，开放全区预约。",
+  "节日榜另行通知。",
+];
+
+const penaltyRules = [
+  "除 5 名预约成员，超分人员一律进行处罚。自行派 3 队最强兵种满编 514 撞榜一（一盟 4 车）。",
+  "超分影响到前五名的撞 5 车（一盟 6 车）。",
+  "处罚时间为小榜结束 22 小时内，无特殊情况，在规定时间内没完成处罚将清兵处理。",
+  "一个国战周期，每累计超分一次，撞车数 +1。",
+];
+
+const resourceRules = [
+  "按照国战备战期间联盟积分比例，分配每个月的堡垒要塞首占资格。",
+  "国战个人排名前 20 拉满所有堡垒要塞奖励。",
+];
+
+function RuleBlock({
+  icon: Icon,
+  title,
+  rules,
+}: {
+  icon: typeof Target;
+  title: string;
+  rules: string[];
+}) {
+  return (
+    <article className='rule-block'>
+      <h3>
+        <Icon size={17} /> {title}
+      </h3>
+      <ol>
+        {rules.map((rule) => (
+          <li key={rule}>{rule}</li>
+        ))}
+      </ol>
     </article>
   );
 }
 
 export default function Home() {
-  const [activeRule, setActiveRule] = useState("resources");
+  const [data, setData] = useState<SiteData>(DEFAULT_SITE_DATA);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
-  const currentRule = useMemo(
-    () => ruleGroups.find((rule) => rule.id === activeRule) ?? ruleGroups[0],
-    [activeRule],
+  const now = useNow();
+
+  useEffect(() => {
+    fetch("/api/site-data", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => setData({ ...DEFAULT_SITE_DATA, ...json }))
+      .catch(() => {});
+    fetch("/api/photos", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => Array.isArray(json) && setPhotos(json))
+      .catch(() => {});
+  }, []);
+
+  const highlight = useMemo(
+    () => data.events.find((event) => event.highlight) ?? data.events[0],
+    [data.events],
   );
-  const ActiveIcon = currentRule.icon;
+  const openSince =
+    now > 0 ? diffParts(new Date(data.openDate).getTime(), now) : null;
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <main>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="3760 区首页">
-          <span className="brand-mark">3760</span>
-          <span className="brand-copy">
-            <strong>冰原共同体</strong>
-            <small>国服 · 玩家共治</small>
+      <Snowfall />
+
+      <header className='site-header hidden'>
+        <a className='brand' href='#top' aria-label='3760 区首页'>
+          <span className='brand-mark'>3760</span>
+          <span className='brand-copy'>
+            <strong>无尽冬日 · 3760 区</strong>
+            <small>WHITEOUT SURVIVAL</small>
           </span>
         </a>
-        <nav className={menuOpen ? "main-nav is-open" : "main-nav"} aria-label="主导航">
-          <a href="#timeline" onClick={closeMenu}>时间线</a>
-          <a href="#transfer" onClick={closeMenu}>移民分组</a>
-          <a href="#rules" onClick={closeMenu}>管理办法</a>
-          <a href="#values" onClick={closeMenu}>价值观</a>
-          <a className="nav-cta" href="#notice" onClick={closeMenu}>本周公告 <ArrowRight size={15} /></a>
+        <nav
+          className={menuOpen ? "main-nav is-open" : "main-nav"}
+          aria-label='主导航'
+        >
+          <a href='#events' onClick={closeMenu}>
+            事件计时
+          </a>
+          <a href='#transfer' onClick={closeMenu}>
+            移民分组
+          </a>
+          <a href='#album' onClick={closeMenu}>
+            相册
+          </a>
+          <a href='#rules' onClick={closeMenu}>
+            小榜制度
+          </a>
+          <a href='#values' onClick={closeMenu}>
+            价值观
+          </a>
+          <a href='#contact' onClick={closeMenu}>
+            联系管理
+          </a>
         </nav>
         <button
-          className="menu-button"
-          type="button"
+          className='menu-button'
+          type='button'
           aria-label={menuOpen ? "关闭导航" : "打开导航"}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
@@ -297,198 +221,215 @@ export default function Home() {
         </button>
       </header>
 
-      <section className="hero" id="top">
-        <div className="hero-grid" aria-hidden="true" />
-        <div className="hero-orbit orbit-one" aria-hidden="true" />
-        <div className="hero-orbit orbit-two" aria-hidden="true" />
-        <div className="section-shell hero-layout">
-          <div className="hero-copy">
-            <div className="status-line">
-              <span className="status-badge"><ShieldCheck size={14} /> 秩序稳定</span>
-              <span>最后更新 · 2026.07.30</span>
-            </div>
-            <p className="eyebrow">WHITEOUT SURVIVAL · STATE 3760</p>
-            <h1>规矩写在明处，<br /><span>把资源留给长期主义。</span></h1>
-            <p className="hero-lead">
-              这里是 3760 区的公开信息台。重要档期、移民安排、资源规则与共同价值，
-              都可以在这里被看到、被理解、被讨论。
+      <section className='hero' id='top'>
+        <div className='shell hero-shell'>
+          <div className='hero-copy'>
+            <p className='eyebrow'>
+              <Snowflake size={13} /> WHITEOUT SURVIVAL · #3760
             </p>
-            <div className="hero-actions">
-              <a className="primary-button" href="#timeline">查看近期安排 <ArrowDown size={16} /></a>
-              <a className="text-button" href="#rules">阅读管理办法 <ChevronRight size={16} /></a>
+            <h1>
+              风雪再大，
+              <br />
+              3760 一起扛。
+            </h1>
+
+            <div className='hero-stats'>
+              <div className='stat'>
+                <span>已开区</span>
+                <strong>
+                  {openSince ? `${openSince.days}` : "--"}
+                  <small> 天</small>
+                </strong>
+              </div>
+              <div className='stat'>
+                <span>王国统治力</span>
+                <strong>{data.dominance}</strong>
+              </div>
+              <div className='stat'>
+                <span>移民分组</span>
+                <strong>第 {data.migration.group} 组</strong>
+              </div>
             </div>
+
+            {highlight && now > 0 && (
+              <div className='hero-timer'>
+                <div className='hero-timer-label'>
+                  <Swords size={14} />
+                  {highlight.type === "countdown" ? "距离" : "已开始"} ·{" "}
+                  {highlight.title}
+                </div>
+                <Units
+                  parts={
+                    highlight.type === "countdown" &&
+                    now < new Date(highlight.date).getTime()
+                      ? diffParts(now, new Date(highlight.date).getTime())
+                      : diffParts(new Date(highlight.date).getTime(), now)
+                  }
+                />
+                {highlight.note && (
+                  <p className='hero-timer-note'>{highlight.note}</p>
+                )}
+              </div>
+            )}
           </div>
-          <PrimaryCountdown />
-        </div>
-        <div className="section-shell event-strip">
-          {events.slice(1).map((event) => <EventCountdown event={event} key={event.id} />)}
+
+          <figure className='hero-art'>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src='/city.png' alt='3760 主城' />
+          </figure>
         </div>
       </section>
 
-      <section className="notice-band" id="notice">
-        <div className="section-shell notice-content">
-          <div className="notice-label"><span>本周</span><strong>公告</strong></div>
-          <p><b>国战报名已开放。</b>主力车头、集结手与替补成员请在 08.01 前完成登记；本页时间与分组目前为设计演示数据。</p>
-          <a href="#rules">查看战前规则 <ArrowRight size={15} /></a>
-        </div>
-      </section>
-
-      <section className="content-section timeline-section" id="timeline">
-        <div className="section-shell">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow dark">STATE TIMELINE</p>
-              <h2>近期时间线</h2>
-            </div>
-            <p>提前知道下一件大事，把节奏掌握在自己手里。</p>
+      <section className='section' id='events'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>事件计时</h2>
           </div>
-          <div className="timeline">
-            {timeline.map((item, index) => (
-              <article className="timeline-item" key={item.date + item.title}>
-                <div className="timeline-date">
-                  <span>{item.date}</span>
-                  <small>AUG</small>
-                </div>
-                <div className="timeline-line">
-                  <span className={index === 1 ? "timeline-node is-key" : "timeline-node"} />
-                </div>
-                <div className="timeline-copy">
-                  <div className="timeline-topline">
-                    <span>{item.label}</span>
-                    <em>{item.status}</em>
-                  </div>
-                  <h3>{item.title}</h3>
-                  <p>{item.copy}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-          <p className="data-note">以上为版式演示档期，正式时间以游戏内公告及管理组通知为准。</p>
-        </div>
-      </section>
-
-      <section className="content-section transfer-section" id="transfer">
-        <div className="section-shell transfer-layout">
-          <div className="transfer-intro">
-            <p className="eyebrow">STATE TRANSFER</p>
-            <h2>移民不是抢人，<br />是一次双向选择。</h2>
-            <p>
-              我们希望新成员在进入 3760 前就清楚这里的节奏、边界和期待。
-              战力是参考，稳定、协作与长期意愿同样重要。
-            </p>
-            <div className="group-card">
-              <span>本轮移民分组</span>
-              <strong>待游戏内确认</strong>
-              <small>范围与战力上限将在开放前同步更新</small>
-            </div>
-          </div>
-          <div className="transfer-phases">
-            {[
-              ["01", "预登记", "填写基础信息、目标联盟、活跃时段与迁入原因。"],
-              ["02", "双向沟通", "管理组与目标联盟沟通，确认节奏、位置与邀请类型。"],
-              ["03", "名单公示", "普通邀请与特殊邀请分别公示，保留复核窗口。"],
-              ["04", "落地融入", "完成联盟对接、规则确认和首周活动安排。"],
-            ].map(([step, title, copy]) => (
-              <article className="phase-row" key={step}>
-                <span>{step}</span>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{copy}</p>
-                </div>
-                <Check size={18} />
-              </article>
+          <div className='events-grid'>
+            {data.events.map((event) => (
+              <EventTimer event={event} now={now} key={event.id} />
             ))}
           </div>
         </div>
-        <div className="section-shell profile-line">
-          <span><Users size={18} /> 我们优先欢迎</span>
-          <strong>稳定在线</strong>
-          <strong>愿意沟通</strong>
-          <strong>尊重排期</strong>
-          <strong>不过度内耗</strong>
+      </section>
+
+      <section className='section' id='album'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>3760 相册</h2>
+          </div>
+          {photos.length > 0 ? (
+            <div className='album-grid'>
+              {photos.map((photo) => (
+                <figure className='album-item' key={photo.key}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/photos?key=${encodeURIComponent(photo.key)}`}
+                    alt={photo.name || "3760 相册"}
+                    loading='lazy'
+                  />
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p className='section-empty'>
+              <Camera size={15} /> 相册筹备中，敬请期待。
+            </p>
+          )}
         </div>
       </section>
 
-      <section className="content-section rules-section" id="rules">
-        <div className="section-shell">
-          <div className="section-heading rules-heading">
-            <div>
-              <p className="eyebrow dark">GOVERNANCE</p>
-              <h2>区管理办法</h2>
+      <section className='section' id='transfer'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>移民分组</h2>
+          </div>
+          <div className='transfer-grid'>
+            <div className='transfer-card'>
+              <span>当前分组</span>
+              <strong>第 {data.migration.group} 组</strong>
             </div>
+            <div className='transfer-card'>
+              <span>接纳区间</span>
+              <strong>
+                {data.migration.rangeStart} – {data.migration.rangeEnd}
+              </strong>
+            </div>
+            <div className='transfer-card'>
+              <span>实力上限</span>
+              <strong>{data.migration.powerCap}</strong>
+            </div>
+          </div>
+          <p className='transfer-note'>
+            <Users size={15} />
+            我们优先欢迎活跃小团体的加入。
+          </p>
+        </div>
+      </section>
+
+      <section className='section' id='rules'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>3760 管理制度</h2>
             <p>把模糊的“惯例”变成所有人都能查阅的共同规则。</p>
           </div>
-          <div className="rule-tabs" role="tablist" aria-label="管理办法分类">
-            {ruleGroups.map((rule) => {
-              const Icon = rule.icon;
-              return (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeRule === rule.id}
-                  className={activeRule === rule.id ? "rule-tab is-active" : "rule-tab"}
-                  onClick={() => setActiveRule(rule.id)}
-                  key={rule.id}
-                >
-                  <Icon size={18} />
-                  {rule.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="rule-panel" role="tabpanel">
-            <div className="rule-title-block">
-              <div className="large-rule-icon"><ActiveIcon /></div>
-              <p className="eyebrow dark">{currentRule.eyebrow}</p>
-              <h3>{currentRule.title}</h3>
-              <p>{currentRule.lead}</p>
-            </div>
-            <div className="rule-list">
-              {currentRule.rules.map((rule, index) => (
-                <div className="rule-item" key={rule}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <p>{rule}</p>
-                </div>
-              ))}
-              <div className="rule-note"><ScrollText size={17} /> {currentRule.note}</div>
-            </div>
+          <div className='rules-grid'>
+            <RuleBlock icon={Target} title='小榜制度' rules={minorRules} />
+            <RuleBlock
+              icon={ShieldAlert}
+              title='处罚规定'
+              rules={penaltyRules}
+            />
+            <RuleBlock icon={Gem} title='资源分配' rules={resourceRules} />
+            <article className='rule-block'>
+              <h3>
+                <Crown size={17} /> 管理特权
+              </h3>
+              <p className='rule-plain'>管理无任何特权。</p>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="values-section" id="values">
-        <div className="section-shell">
-          <div className="values-heading">
-            <p className="eyebrow">OUR PRINCIPLES</p>
-            <h2>我们想一起守住的，<br />不只是一座王城。</h2>
-            <HeartHandshake size={54} />
+      <section className='section' id='values'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>3760 区文化</h2>
           </div>
-          <div className="values-grid">
-            {values.map((value) => (
-              <article className="value-item" key={value.number}>
-                <span>{value.number}</span>
-                <h3>{value.title}</h3>
-                <p>{value.copy}</p>
-              </article>
-            ))}
+          <div className='values-list'>
+            <article>
+              <h3>长期主义</h3>
+              <p>
+                我们更在意半年后还有多少人愿意一起玩，而不是今天多拿一档奖励。
+              </p>
+            </article>
+            <article>
+              <h3>国战奖励基金</h3>
+              <p>
+                车头每期国战备战都集资奖励基金，目前每期都有 2100
+                元奖励；除野兽榜以外，地心前 10 车头不参与奖金分配。
+              </p>
+            </article>
+            <article>
+              <h3>一起玩才重要</h3>
+              <p>
+                微信群长期举办集体活动，如王者荣耀等比赛。大家一起玩得开心才是最重要的。
+              </p>
+            </article>
           </div>
-          <blockquote>
-            <span>“</span>
-            <p>强大不是让所有人用同一种方式游戏，<br />而是让不同的人仍愿意朝同一个方向前进。</p>
-          </blockquote>
+        </div>
+      </section>
+
+      <section className='section' id='contact'>
+        <div className='shell'>
+          <div className='section-heading'>
+            <h2>联系 3760 管理</h2>
+          </div>
+          {data.contacts.length > 0 ? (
+            <div className='contact-grid'>
+              {data.contacts.map((contact) => (
+                <article className='contact-card' key={contact.id}>
+                  <h3>{contact.name || "管理"}</h3>
+                  <p>
+                    <Users size={14} /> 游戏 ID：{contact.gameId || "-"}
+                  </p>
+                  <p>
+                    <MapPin size={14} /> 坐标：{contact.coords || "-"}
+                  </p>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className='section-empty'>
+              <Users size={15} /> 管理组联系方式暂未公布。
+            </p>
+          )}
         </div>
       </section>
 
       <footer>
-        <div className="section-shell footer-top">
-          <div>
-            <p className="eyebrow">STATE 3760</p>
-            <h2>共同建设，持续更新。</h2>
-          </div>
-          <a className="primary-button light" href="#top">返回顶部 <ArrowDown className="rotate-icon" size={16} /></a>
-        </div>
-        <div className="section-shell footer-bottom">
-          <span>国服 3760 区 · 玩家共治信息台</span>
+        <div className='shell'>
+          <span>无尽冬日 · 国服 3760 区</span>
           <span>页面内容以游戏内最新公告为准</span>
           <span>© 2026 STATE 3760</span>
         </div>

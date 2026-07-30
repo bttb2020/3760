@@ -21,6 +21,22 @@
     {
       "binding": "VINEXT_KV_CACHE",
       "id": "ee0f6bf1c383419882ef4bc61729857a"
+    },
+    {
+      "binding": "SITE_DATA",
+      "id": "d17c229f0a614c54b8fc66e7694516ed"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS",
+      "bucket_name": "3760-photos"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "3760.lol",
+      "custom_domain": true
     }
   ]
 }

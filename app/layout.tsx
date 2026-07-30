@@ -11,10 +11,13 @@ const geist = Geist({
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
   const host = requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
   const ogImage = `${protocol}://${host}/og.png`;
-  const title = "3760 区 · 冰原共同体";
-  const description = "国服 3760 区时间线、移民安排、管理办法与共同价值观。";
+  const title = "无尽冬日 3760 区欢迎你";
+  const description =
+    "无尽冬日国服 3760 区：王国进程、事件计时、移民分组与小榜制度。";
 
   return {
     title,
@@ -22,7 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: [{ url: ogImage, width: 1731, height: 909, alt: "3760 区冰原共同体" }],
+      images: [
+        { url: ogImage, width: 1731, height: 909, alt: "3760 区 · 无尽冬日" },
+      ],
       locale: "zh_CN",
       type: "website",
     },
@@ -35,9 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" className={geist.variable}>
+    <html lang='zh-CN' className={geist.variable}>
       <body>{children}</body>
     </html>
   );
