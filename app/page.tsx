@@ -179,48 +179,6 @@ export default function Home() {
     <main>
       <Snowfall />
 
-      <header className='site-header hidden'>
-        <a className='brand' href='#top' aria-label='3760 区首页'>
-          <span className='brand-mark'>3760</span>
-          <span className='brand-copy'>
-            <strong>无尽冬日 · 3760 区</strong>
-            <small>WHITEOUT SURVIVAL</small>
-          </span>
-        </a>
-        <nav
-          className={menuOpen ? "main-nav is-open" : "main-nav"}
-          aria-label='主导航'
-        >
-          <a href='#events' onClick={closeMenu}>
-            事件计时
-          </a>
-          <a href='#transfer' onClick={closeMenu}>
-            移民分组
-          </a>
-          <a href='#album' onClick={closeMenu}>
-            相册
-          </a>
-          <a href='#rules' onClick={closeMenu}>
-            小榜制度
-          </a>
-          <a href='#values' onClick={closeMenu}>
-            价值观
-          </a>
-          <a href='#contact' onClick={closeMenu}>
-            联系管理
-          </a>
-        </nav>
-        <button
-          className='menu-button'
-          type='button'
-          aria-label={menuOpen ? "关闭导航" : "打开导航"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X /> : <Menu />}
-        </button>
-      </header>
-
       <section className='hero' id='top'>
         <div className='shell hero-shell'>
           <div className='hero-copy'>
