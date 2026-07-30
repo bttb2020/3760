@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Crown,
   Gem,
+  Link2,
   MapPin,
   Menu,
   ShieldAlert,
@@ -153,6 +154,7 @@ export default function Home() {
   const [data, setData] = useState<SiteData>(DEFAULT_SITE_DATA);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selected, setSelected] = useState<Photo | null>(null);
   const now = useNow();
 
   useEffect(() => {
@@ -174,6 +176,19 @@ export default function Home() {
     now > 0 ? diffParts(new Date(data.openDate).getTime(), now) : null;
 
   const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
 
   return (
     <main>
@@ -260,12 +275,19 @@ export default function Home() {
             <div className='album-grid'>
               {photos.map((photo) => (
                 <figure className='album-item' key={photo.key}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/photos?key=${encodeURIComponent(photo.key)}`}
-                    alt={photo.name || "3760 相册"}
-                    loading='lazy'
-                  />
+                  <button
+                    type='button'
+                    className='album-item-button'
+                    onClick={() => setSelected(photo)}
+                    aria-label={`查看大图：${photo.name || "3760 相册"}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/photos?key=${encodeURIComponent(photo.key)}`}
+                      alt={photo.name || "3760 相册"}
+                      loading='lazy'
+                    />
+                  </button>
                 </figure>
               ))}
             </div>
@@ -374,6 +396,24 @@ export default function Home() {
                   <p>
                     <MapPin size={14} /> 坐标：{contact.coords || "-"}
                   </p>
+                  {(contact.fields ?? [])
+                    .filter((field) => field.label.trim() && field.value.trim())
+                    .map((field) => (
+                      <p key={field.id}>
+                        <Link2 size={14} /> {field.label}：
+                        {/^https?:\/\//i.test(field.value.trim()) ? (
+                          <a
+                            href={field.value.trim()}
+                            target='_blank'
+                            rel='noreferrer'
+                          >
+                            {field.value.trim()}
+                          </a>
+                        ) : (
+                          field.value
+                        )}
+                      </p>
+                    ))}
                 </article>
               ))}
             </div>
@@ -392,6 +432,31 @@ export default function Home() {
           <span>© 2026 STATE 3760</span>
         </div>
       </footer>
+
+      {selected && (
+        <div
+          className='album-lightbox'
+          role='dialog'
+          aria-modal='true'
+          aria-label={selected.name || "3760 相册"}
+          onClick={() => setSelected(null)}
+        >
+          <button
+            type='button'
+            className='album-lightbox-close'
+            onClick={() => setSelected(null)}
+            aria-label='关闭'
+          >
+            <X size={20} />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/photos?key=${encodeURIComponent(selected.key)}`}
+            alt={selected.name || "3760 相册"}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </main>
   );
 }

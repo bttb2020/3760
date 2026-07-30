@@ -53,6 +53,16 @@ export async function PUT(request: Request) {
       name: String(contact.name ?? ""),
       gameId: String(contact.gameId ?? ""),
       coords: String(contact.coords ?? ""),
+      fields: (Array.isArray(contact.fields) ? contact.fields : [])
+        .map((field, fieldIndex) => ({
+          id:
+            typeof field.id === "string" && field.id
+              ? field.id
+              : `field-${index}-${fieldIndex}`,
+          label: String(field.label ?? "").trim(),
+          value: String(field.value ?? "").trim(),
+        }))
+        .filter((field) => field.label && field.value),
     }),
   );
 

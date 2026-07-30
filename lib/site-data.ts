@@ -17,11 +17,21 @@ export type MigrationInfo = {
   powerCap: string;
 };
 
+export type ContactField = {
+  id: string;
+  /** 字段名，如：微信、抖音 */
+  label: string;
+  /** 内容；以 http(s):// 开头时前台渲染为可点击链接 */
+  value: string;
+};
+
 export type Contact = {
   id: string;
   name: string;
   gameId: string;
   coords: string;
+  /** 自定义字段，空字段不展示 */
+  fields: ContactField[];
 };
 
 export type SiteData = {

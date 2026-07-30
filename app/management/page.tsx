@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Contact, SiteData, SiteEvent } from "@/lib/site-data";
+import type { Contact, ContactField, SiteData, SiteEvent } from "@/lib/site-data";
 
 const STORAGE_KEY = "3760-admin-password";
 
@@ -33,6 +33,13 @@ const emptyContact = (): Contact => ({
   name: "",
   gameId: "",
   coords: "",
+  fields: [],
+});
+
+const emptyField = (): ContactField => ({
+  id: `field-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  label: "",
+  value: "",
 });
 
 export default function ManagementPage() {
@@ -150,6 +157,27 @@ export default function ManagementPage() {
       ...data,
       contacts: data.contacts.map((contact) =>
         contact.id === id ? { ...contact, ...patch } : contact,
+      ),
+    });
+  };
+
+  const updateField = (
+    contactId: string,
+    fieldId: string,
+    patch: Partial<ContactField>,
+  ) => {
+    if (!data) return;
+    setData({
+      ...data,
+      contacts: data.contacts.map((contact) =>
+        contact.id === contactId
+          ? {
+              ...contact,
+              fields: (contact.fields ?? []).map((field) =>
+                field.id === fieldId ? { ...field, ...patch } : field,
+              ),
+            }
+          : contact,
       ),
     });
   };
@@ -392,6 +420,47 @@ export default function ManagementPage() {
                   删除
                 </button>
               </div>
+              {(contact.fields ?? []).map((field) => (
+                <div className="admin-field-row" key={field.id}>
+                  <input
+                    type="text"
+                    value={field.label}
+                    placeholder="字段名，如：微信、抖音"
+                    onChange={(e) =>
+                      updateField(contact.id, field.id, { label: e.target.value })
+                    }
+                  />
+                  <input
+                    type="text"
+                    value={field.value}
+                    placeholder="内容，如：微信号或 https:// 链接"
+                    onChange={(e) =>
+                      updateField(contact.id, field.id, { value: e.target.value })
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      updateContact(contact.id, {
+                        fields: (contact.fields ?? []).filter((f) => f.id !== field.id),
+                      })
+                    }
+                  >
+                    删除
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="admin-add-field"
+                onClick={() =>
+                  updateContact(contact.id, {
+                    fields: [...(contact.fields ?? []), emptyField()],
+                  })
+                }
+              >
+                + 添加自定义字段
+              </button>
             </div>
           ))}
           <button
