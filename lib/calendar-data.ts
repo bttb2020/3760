@@ -1,3 +1,17 @@
+export type BoardMaterial = {
+  name: string;
+  /** 每个材料对应的分值 */
+  points: number;
+};
+
+export type Board = {
+  /** 低保线（分） */
+  minScore: number;
+  /** 上限（分） */
+  maxScore: number;
+  materials: BoardMaterial[];
+};
+
 export type CycleEvent = {
   id: string;
   name: string;
@@ -8,6 +22,8 @@ export type CycleEvent = {
   /** 持续天数（含开始当天） */
   durationDays: number;
   note?: string;
+  /** 小榜详情（存在即可点击查看） */
+  board?: Board;
 };
 
 export type CycleWeek = {
@@ -48,6 +64,29 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       weeks: [2],
       weekday: 1,
       durationDays: 7,
+    },
+    {
+      id: "minor-board",
+      name: "小榜",
+      weeks: [2],
+      weekday: 1,
+      durationDays: 2,
+      note: "联盟大作战周周一、周二。",
+      board: {
+        minScore: 20000,
+        maxScore: 100000,
+        materials: [
+          { name: "火晶", points: 100 },
+          { name: "微粒", points: 50 },
+          { name: "专家印记", points: 200 },
+          { name: "专家书", points: 2 },
+          { name: "领主", points: 3 },
+          { name: "橙碎", points: 125 },
+          { name: "紫碎", points: 50 },
+          { name: "蓝碎", points: 15 },
+          { name: "加速1分钟", points: 1 },
+        ],
+      },
     },
     {
       id: "frost-king",
@@ -102,6 +141,28 @@ export function normalizeCalendarData(raw: unknown): CalendarData {
         typeof item.durationDays === "number" && item.durationDays >= 1
           ? Math.round(item.durationDays)
           : 1;
+
+      let board: Board | undefined;
+      if (item.board && typeof item.board === "object") {
+        const b = item.board as Record<string, unknown>;
+        const materials: BoardMaterial[] = (Array.isArray(b.materials) ? b.materials : [])
+          .map((m) => {
+            const mat = (m ?? {}) as Record<string, unknown>;
+            return {
+              name: String(mat.name ?? ""),
+              points: typeof mat.points === "number" ? mat.points : 0,
+            };
+          })
+          .filter((m) => m.name && m.points > 0);
+        if (materials.length > 0) {
+          board = {
+            minScore: typeof b.minScore === "number" ? b.minScore : 0,
+            maxScore: typeof b.maxScore === "number" ? b.maxScore : 0,
+            materials,
+          };
+        }
+      }
+
       return {
         id: typeof item.id === "string" && item.id ? item.id : `event-${i}`,
         name: String(item.name ?? ""),
@@ -109,6 +170,7 @@ export function normalizeCalendarData(raw: unknown): CalendarData {
         weekday,
         durationDays,
         note: typeof item.note === "string" ? item.note : undefined,
+        board,
       };
     },
   );
