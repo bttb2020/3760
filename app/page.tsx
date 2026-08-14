@@ -101,6 +101,7 @@ function EventTimer({ event, now }: { event: SiteEvent; now: number }) {
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
+          timeZone: "Asia/Shanghai",
         })}
         {event.note && <em>{event.note}</em>}
       </p>
