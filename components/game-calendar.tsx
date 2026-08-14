@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, X } from "lucide-react";
+import gsap from "gsap";
 import {
   DEFAULT_CALENDAR_DATA,
   type CalendarData,
@@ -152,6 +153,38 @@ function CalendarGrid({
 
 function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void }) {
   const board = event.board;
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const tl = gsap.timeline();
+    if (overlay) {
+      tl.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" }, 0);
+    }
+    tl.fromTo(
+      panel,
+      { opacity: 0, scale: 0.94, y: 20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.32, ease: "back.out(1.4)" },
+      0,
+    );
+    const rows = panel.querySelectorAll<HTMLElement>(".board-table tbody tr");
+    if (rows.length > 0) {
+      tl.fromTo(
+        rows,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.25, stagger: 0.035, ease: "power2.out" },
+        0.12,
+      );
+    }
+    return () => {
+      tl.kill();
+    };
+  }, []);
+
   if (!board) return null;
 
   return (
@@ -161,8 +194,9 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
       aria-modal="true"
       aria-label={event.name}
       onClick={onClose}
+      ref={overlayRef}
     >
-      <div className="board-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="board-panel" onClick={(e) => e.stopPropagation()} ref={panelRef}>
         <header className="board-head">
           <h3>{event.name}</h3>
           <button type="button" onClick={onClose} aria-label="关闭">
@@ -179,8 +213,8 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
           <thead>
             <tr>
               <th>材料</th>
-              <th>分值</th>
-              <th>最大可使用量</th>
+              <th className="board-num">分值</th>
+              <th className="board-num">最大可使用量</th>
             </tr>
           </thead>
           <tbody>
@@ -194,7 +228,7 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
           </tbody>
         </table>
 
-        <p className="board-foot">「最大可使用量」为达到上限所需数量，超出上限的部分不计分。</p>
+        <p className="board-foot">「最大可使用量」为达到上限所需数量，超出上限需接受惩罚。</p>
       </div>
     </div>
   );

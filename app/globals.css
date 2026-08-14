@@ -1589,6 +1589,10 @@ footer .shell {
   color: #c3d4e2;
 }
 
+.board-table .board-num {
+  text-align: right;
+}
+
 .board-table .board-points,
 .board-table .board-max {
   text-align: right;
