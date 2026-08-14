@@ -416,51 +416,262 @@ button {
 }
 
 /* 制度 */
-.rules-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.rules-heading > div {
+  flex: 1;
 }
 
-.rule-block {
-  padding: 26px;
+.rules-kicker {
+  margin: 0 0 10px !important;
+  color: var(--ice) !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+.rules-card {
+  overflow: hidden;
+  margin-top: 14px;
+  padding: 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
 }
 
-.rule-block h3 {
+.rules-card-title {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 0 18px;
+  margin-bottom: 22px;
   color: var(--ice);
+}
+
+.rules-card-title h3 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.rules-card-title-centered {
+  justify-content: center;
+}
+
+.rules-board {
+  border-top: 1px solid var(--line);
+}
+
+.rules-board-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(90px, 0.7fr) minmax(100px, 0.7fr);
+  align-items: center;
+  min-height: 72px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rules-board-row > span {
+  padding: 14px 18px;
+  color: #d5e3ed;
+  font-size: 14px;
+}
+
+.rules-board-row > span:nth-child(2),
+.rules-board-row > span:nth-child(3) {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+}
+
+.rules-board-row strong,
+.penalty-row strong {
+  color: var(--text);
   font-size: 15px;
 }
 
-.rule-block ol {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 0;
-  padding-left: 20px;
+.rules-board-row small,
+.penalty-row small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
-.rule-block li {
+.rules-board-head {
+  min-height: 48px;
+}
+
+.rules-board-head > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.rules-board-row .is-yes {
+  color: #73e7a6;
+}
+
+.rules-board-row .is-no {
+  color: #f472b6;
+}
+
+.war-rule-card {
+  padding-bottom: 8px;
+}
+
+.war-outcomes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.war-outcome {
+  display: flex;
+  min-width: 0;
+  align-items: end;
+  justify-content: center;
+  gap: 12px;
+}
+
+.war-outcome img {
+  width: min(48%, 210px);
+  height: 190px;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
+}
+
+.war-outcome > div {
+  min-width: 120px;
+  padding-bottom: 34px;
+}
+
+.war-outcome span,
+.war-outcome strong {
+  display: block;
+}
+
+.war-outcome span {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.war-outcome strong {
+  margin-top: 8px;
+  color: #facc15;
+  font-size: 16px;
+}
+
+.war-outcome:last-child strong {
+  color: #c3d4e2;
+}
+
+.rules-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.rules-copy-card ol,
+.appeal-card ol {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.rules-copy-card li,
+.appeal-card li {
   color: #c3d4e2;
   font-size: 13px;
   line-height: 1.85;
 }
 
-.rule-block li::marker {
+.rules-copy-card > ol > li + li,
+.appeal-card li + li {
+  margin-top: 12px;
+}
+
+.rules-copy-card li::marker,
+.appeal-card li::marker {
   color: var(--ice-deep);
   font-weight: 700;
 }
 
-.rule-plain {
-  margin: 0;
-  color: #c3d4e2;
-  font-size: 14px;
+.rules-copy-card ol ol {
+  margin-top: 8px;
+  padding-left: 22px;
+}
+
+.rules-copy-card ol ol li + li {
+  margin-top: 5px;
+}
+
+.rules-card mark {
+  padding: 0;
+  background: transparent;
+  color: #facc15;
+  font-weight: 800;
+}
+
+.rules-copy-card li strong {
+  color: #facc15;
+}
+
+.penalty-table {
+  border-top: 1px solid var(--line);
+}
+
+.penalty-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  align-items: center;
+  min-height: 84px;
+  border-bottom: 1px solid var(--line);
+}
+
+.penalty-row > span,
+.penalty-row > strong {
+  padding: 16px 18px;
+}
+
+.penalty-head {
+  min-height: 48px;
+}
+
+.penalty-head > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.penalty-head > span:last-child,
+.penalty-teams {
+  text-align: center;
+}
+
+.penalty-row .penalty-teams {
+  color: #facc15;
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.penalty-note {
+  margin: 18px 18px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.appeal-card {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+  gap: 26px;
+}
+
+.appeal-card .rules-card-title {
+  margin: 2px 0 0;
 }
 
 /* 价值观 */
@@ -759,9 +970,14 @@ footer .shell {
   }
 
   .transfer-grid,
-  .rules-grid,
+  .rules-detail-grid,
   .values-list {
     grid-template-columns: 1fr;
+  }
+
+  .appeal-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 
   .stat {
@@ -779,6 +995,84 @@ footer .shell {
 
   .admin-event-row:last-child {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .rules-card {
+    padding: 20px;
+  }
+
+  .rules-board-row {
+    grid-template-columns: minmax(0, 1.35fr) 70px 86px;
+  }
+
+  .rules-board-row > span {
+    padding: 12px 6px;
+    font-size: 12px;
+  }
+
+  .rules-board-row strong {
+    font-size: 13px;
+  }
+
+  .war-rule-card {
+    padding-bottom: 0;
+  }
+
+  .rules-card-title-centered {
+    justify-content: flex-start;
+  }
+
+  .war-outcomes {
+    gap: 6px;
+  }
+
+  .war-outcome {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .war-outcome img {
+    width: 100%;
+    height: 150px;
+  }
+
+  .war-outcome > div {
+    min-width: 0;
+    padding: 0 0 24px;
+    text-align: center;
+  }
+
+  .war-outcome span {
+    font-size: 17px;
+  }
+
+  .war-outcome strong {
+    font-size: 13px;
+  }
+
+  .penalty-row {
+    grid-template-columns: minmax(0, 1fr) 92px;
+  }
+
+  .penalty-row > span,
+  .penalty-row > strong {
+    padding: 14px 8px;
+  }
+
+  .penalty-row strong {
+    font-size: 13px;
+  }
+
+  .penalty-row .penalty-teams {
+    font-size: 16px;
+  }
+
+  .penalty-note {
+    margin-right: 8px;
+    margin-left: 8px;
   }
 }
 
