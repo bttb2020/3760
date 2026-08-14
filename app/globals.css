@@ -11,7 +11,9 @@
   --muted: #8ba3b8;
   --ice: #7cd4fc;
   --ice-deep: #38bdf8;
+  --rose: #fb7185;
   --radius: 14px;
+  --cal-row: 30px;
 }
 
 * {
@@ -983,6 +985,33 @@ footer .shell {
   font-size: 11px;
 }
 
+.admin-calendar-json {
+  display: block;
+  width: 100%;
+  min-height: 260px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(8, 18, 30, 0.8);
+  color: var(--text);
+  font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  resize: vertical;
+  color-scheme: dark;
+}
+
+.admin-calendar-json:focus {
+  border-color: var(--ice-deep);
+  outline: none;
+}
+
+.admin-calendar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 @media (max-width: 860px) {
   .album-grid,
   .admin-photos {
@@ -991,6 +1020,690 @@ footer .shell {
 
   .admin-contact-row,
   .admin-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================== 游戏日历 /calendar ===================== */
+.cal-hero {
+  padding: 72px 0 48px;
+}
+
+.cal-hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 40px;
+}
+
+.cal-hero-copy h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 52px);
+  letter-spacing: -0.04em;
+}
+
+.cal-hero-copy > p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 560px;
+}
+
+.cal-hero-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px !important;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+}
+
+.cal-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: min(420px, 100%);
+}
+
+.cal-stat {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.cal-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ice);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cal-stat-value {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.cal-stat-value small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.cal-sync,
+.cal-empty {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cal-spin {
+  animation: cal-spin 1s linear infinite;
+}
+
+@keyframes cal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 分类圆点 */
+.cal-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.cal-dot.is-pack,
+.cal-toggle-dot.is-pack {
+  background: var(--ice);
+}
+
+.cal-dot.is-event,
+.cal-toggle-dot.is-event {
+  background: var(--rose);
+}
+
+/* 当前时段 */
+.quick-table {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.quick-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.quick-row:last-child {
+  border-bottom: 0;
+}
+
+.quick-head {
+  padding: 10px 18px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(8, 18, 30, 0.55);
+}
+
+.quick-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.quick-name > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-name small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.quick-window {
+  color: #c3d4e2;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-timing {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.quick-timing.is-active {
+  color: var(--ice);
+  font-weight: 700;
+}
+
+/* 开关 */
+.cal-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cal-toggle.is-on.is-pack {
+  border-color: rgba(124, 212, 252, 0.4);
+  background: rgba(124, 212, 252, 0.12);
+  color: var(--ice);
+}
+
+.cal-toggle.is-on.is-event {
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.12);
+  color: var(--rose);
+}
+
+.cal-toggle-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* 日历网格 */
+.cal-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(8, 18, 30, 0.4);
+}
+
+.cal-grid {
+  min-width: 720px;
+}
+
+.cal-weekdays,
+.cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.cal-weekdays {
+  border-bottom: 1px solid var(--line);
+  background: rgba(8, 18, 30, 0.6);
+}
+
+.cal-weekdays span {
+  padding: 10px 4px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cal-week {
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+
+.cal-week:last-child {
+  border-bottom: 0;
+}
+
+.cal-day {
+  position: relative;
+  min-height: var(--cal-row);
+  border-right: 1px solid rgba(148, 190, 220, 0.08);
+  border-bottom: 1px solid rgba(148, 190, 220, 0.08);
+}
+
+.cal-week:nth-last-child(1) .cal-day {
+  border-bottom: 0;
+}
+
+.cal-day-num {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.cal-day.is-past .cal-day-num {
+  opacity: 0.4;
+}
+
+.cal-day.is-today {
+  background: rgba(124, 212, 252, 0.08);
+}
+
+.cal-day.is-today .cal-day-num {
+  color: var(--ice);
+  font-weight: 800;
+  opacity: 1;
+}
+
+.cal-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  margin: 2px 3px;
+  padding: 2px 6px;
+  border: 1px solid;
+  border-radius: 6px;
+  overflow: hidden;
+  line-height: 1.15;
+}
+
+.cal-block.is-pack {
+  border-color: rgba(56, 189, 248, 0.42);
+  background: rgba(56, 189, 248, 0.18);
+  color: #bae6fd;
+}
+
+.cal-block.is-event {
+  border-color: rgba(251, 113, 133, 0.42);
+  background: rgba(251, 113, 133, 0.16);
+  color: #fecdd3;
+}
+
+.cal-block.is-projected {
+  border-style: dashed;
+  opacity: 0.62;
+}
+
+.cal-block-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.cal-block-name i {
+  margin-left: 4px;
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.cal-block-time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.cal-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cal-legend .cal-toggle-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.cal-legend-note {
+  color: var(--muted);
+}
+
+/* 非常规活动历史 */
+.cal-irregular-heading {
+  align-items: center;
+}
+
+.irregular-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.irregular-card {
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.irregular-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.irregular-kind {
+  color: #fcd34d;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.irregular-head h3 {
+  margin: 6px 0 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.irregular-head h3 small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.irregular-duration {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.irregular-count {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #c3d4e2;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.irregular-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sighting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sighting:last-child {
+  border-bottom: 0;
+}
+
+.sighting-label {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sighting strong {
+  display: block;
+  margin-top: 5px;
+  color: #e8f1f8;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sighting p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.sighting-side {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.sighting-duration {
+  display: block;
+  color: #fcd34d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.sighting-since-label {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.sighting-since {
+  display: block;
+  margin-top: 2px;
+  color: #c3d4e2;
+  font-size: 12px;
+}
+
+.irregular-empty {
+  margin: 0;
+  padding: 22px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* 日程收录 */
+.tracked-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.tracked-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tracked-title {
+  margin: 0;
+  color: var(--ice);
+  font-size: 16px;
+}
+
+.tracked-sub {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tracked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tracked-item {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.tracked-item-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.tracked-item-head h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  min-width: 0;
+}
+
+.tracked-item-head h4 small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tracked-badge {
+  margin-left: auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tracked-badge.is-warn {
+  background: rgba(251, 191, 36, 0.14);
+  color: #fcd34d;
+}
+
+.tracked-pending-icon {
+  color: #fcd34d;
+  flex: none;
+}
+
+.tracked-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 14px 0 0;
+}
+
+.tracked-meta dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tracked-meta dd {
+  margin: 3px 0 0;
+  color: #c3d4e2;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tracked-note {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.tracked-warn {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: rgba(251, 191, 36, 0.08);
+  color: #fcd34d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .cal-hero-top {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .cal-stats {
+    min-width: 0;
+  }
+
+  .quick-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .quick-head {
+    display: none;
+  }
+
+  .quick-window {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .irregular-grid,
+  .tracked-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracked-meta {
     grid-template-columns: 1fr;
   }
 }

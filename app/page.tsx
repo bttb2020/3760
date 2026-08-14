@@ -9,7 +9,6 @@ import {
   Gem,
   Link2,
   MapPin,
-  Menu,
   ShieldAlert,
   Snowflake,
   Swords,
@@ -17,6 +16,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import SiteHeader from "@/components/site-header";
 import Snowfall from "@/components/snowfall";
 import {
   DEFAULT_SITE_DATA,
@@ -192,6 +192,7 @@ export default function Home() {
 
   return (
     <main>
+      <SiteHeader />
       <Snowfall />
 
       <section className='hero' id='top'>

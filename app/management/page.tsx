@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Contact, ContactField, SiteData, SiteEvent } from "@/lib/site-data";
+import { DEFAULT_CALENDAR_DATA, type CalendarData } from "@/lib/calendar-data";
 
 const STORAGE_KEY = "3760-admin-password";
 
@@ -50,6 +51,9 @@ export default function ManagementPage() {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const [calendarText, setCalendarText] = useState("");
+  const [calendarStatus, setCalendarStatus] = useState("");
+  const [calendarSaving, setCalendarSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPhotos = async () => {
@@ -100,9 +104,51 @@ export default function ManagementPage() {
       window.localStorage.setItem(STORAGE_KEY, pwd);
       setStatus("");
       void loadPhotos();
+      void loadCalendar(pwd);
     } else {
       setAuthed(false);
       setStatus("密码错误");
+    }
+  };
+
+  const loadCalendar = async (pwd: string) => {
+    try {
+      const res = await fetch("/api/calendar", {
+        headers: { authorization: `Bearer ${pwd}` },
+        cache: "no-store",
+      });
+      const json = await res.json();
+      setCalendarText(JSON.stringify(json, null, 2));
+    } catch {
+      setCalendarText("");
+    }
+  };
+
+  const saveCalendar = async () => {
+    let parsed: CalendarData;
+    try {
+      parsed = JSON.parse(calendarText) as CalendarData;
+    } catch {
+      setCalendarStatus("JSON 格式错误，请检查后重试");
+      return;
+    }
+    setCalendarSaving(true);
+    setCalendarStatus("");
+    const res = await fetch("/api/calendar", {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(parsed),
+    });
+    setCalendarSaving(false);
+    if (res.ok) {
+      setCalendarText(JSON.stringify(parsed, null, 2));
+      setCalendarStatus("日历数据已保存，即刻生效");
+    } else {
+      const json = await res.json().catch(() => null);
+      setCalendarStatus(json?.error ?? "保存失败，请重试");
     }
   };
 
@@ -471,6 +517,41 @@ export default function ManagementPage() {
             + 添加管理成员
           </button>
           <p className="admin-hint">联系人随「保存全部修改」一并生效；图片上传后立即生效。</p>
+        </section>
+
+        <section className="admin-section">
+          <h2>游戏日历数据</h2>
+          <p className="admin-hint">
+            以 JSON 编辑 /calendar 页的礼包与活动日程（UTC）。保存后日历页即刻生效。
+          </p>
+          <textarea
+            className="admin-calendar-json"
+            value={calendarText}
+            spellCheck={false}
+            onChange={(e) => setCalendarText(e.target.value)}
+            placeholder="粘贴日历 JSON…"
+          />
+          <div className="admin-calendar-actions">
+            <button
+              type="button"
+              className="admin-save"
+              disabled={calendarSaving}
+              onClick={() => void saveCalendar()}
+            >
+              {calendarSaving ? "保存中…" : "保存日历数据"}
+            </button>
+            <button
+              type="button"
+              className="admin-add"
+              onClick={() => {
+                setCalendarText(JSON.stringify(DEFAULT_CALENDAR_DATA, null, 2));
+                setCalendarStatus("已填入默认数据（尚未保存）");
+              }}
+            >
+              恢复默认数据
+            </button>
+          </div>
+          {calendarStatus && <p className="admin-status">{calendarStatus}</p>}
         </section>
 
         <footer className="admin-footer">
