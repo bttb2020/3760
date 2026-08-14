@@ -40,8 +40,8 @@ function CalendarGrid({
 }) {
   if (now <= 0) {
     return (
-      <div className="cal-sync">
-        <RefreshCw size={15} className="cal-spin" /> 正在同步…
+      <div className='cal-sync'>
+        <RefreshCw size={15} className='cal-spin' /> 正在同步…
       </div>
     );
   }
@@ -49,9 +49,9 @@ function CalendarGrid({
   const todayStart = beijingMidnightUtc(now);
 
   return (
-    <div className="cal-scroll">
-      <div className="cal-grid">
-        <div className="cal-weekdays">
+    <div className='cal-scroll'>
+      <div className='cal-grid'>
+        <div className='cal-weekdays'>
           <span>主题</span>
           {WEEKDAY_LABELS.map((label) => (
             <span key={label}>{label}</span>
@@ -62,11 +62,13 @@ function CalendarGrid({
           const rows = Math.max(1, week.laneCount);
           return (
             <div
-              className="cal-week"
+              className='cal-week'
               key={week.weekStart}
-              style={{ gridTemplateRows: `var(--cal-date-row) repeat(${rows}, var(--cal-row))` }}
+              style={{
+                gridTemplateRows: `var(--cal-date-row) repeat(${rows}, var(--cal-row))`,
+              }}
             >
-              <div className="cal-cycle-label">
+              <div className='cal-cycle-label'>
                 <strong>{cycleTheme(data, week.cycleWeek)}</strong>
               </div>
 
@@ -107,16 +109,18 @@ function CalendarGrid({
                 const title = `${p.occ.event.name}\n${formatRange(p.occ.start, p.occ.end)}\n${p.occ.event.note ?? ""}`;
                 const inner = (
                   <>
-                    <span className="cal-block-name">
+                    <span className='cal-block-name'>
                       {p.continuesBefore ? "← " : ""}
                       {p.occ.event.name}
                       {p.continuesAfter ? " →" : ""}
                     </span>
                     {board ? (
-                      <span className="cal-block-tag">详情</span>
+                      <span className='cal-block-tag'>详情</span>
                     ) : (
                       p.occ.event.durationDays > 1 && (
-                        <span className="cal-block-time">{durationLabel(p.occ.event.durationDays)}</span>
+                        <span className='cal-block-time'>
+                          {durationLabel(p.occ.event.durationDays)}
+                        </span>
                       )
                     )}
                   </>
@@ -125,8 +129,8 @@ function CalendarGrid({
                 if (board) {
                   return (
                     <button
-                      type="button"
-                      className="cal-block is-board"
+                      type='button'
+                      className='cal-block is-board'
                       key={p.occ.id}
                       style={style}
                       title={`${title}\n点击查看详情`}
@@ -138,7 +142,12 @@ function CalendarGrid({
                 }
 
                 return (
-                  <div className="cal-block" key={p.occ.id} style={style} title={title}>
+                  <div
+                    className='cal-block'
+                    key={p.occ.id}
+                    style={style}
+                    title={title}
+                  >
                     {inner}
                   </div>
                 );
@@ -151,7 +160,13 @@ function CalendarGrid({
   );
 }
 
-function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void }) {
+function BoardModal({
+  event,
+  onClose,
+}: {
+  event: CycleEvent;
+  onClose: () => void;
+}) {
   const board = event.board;
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -164,7 +179,12 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
 
     const tl = gsap.timeline();
     if (overlay) {
-      tl.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" }, 0);
+      tl.fromTo(
+        overlay,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.2, ease: "power1.out" },
+        0,
+      );
     }
     tl.fromTo(
       panel,
@@ -185,7 +205,14 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
     const tl = gsap.fromTo(
       rows,
       { opacity: 0, y: 8 },
-      { opacity: 1, y: 0, duration: 0.25, stagger: 0.035, ease: "power2.out", delay: 0.1 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.25,
+        stagger: 0.035,
+        ease: "power2.out",
+        delay: 0.1,
+      },
     );
     return () => {
       tl.kill();
@@ -199,28 +226,32 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
 
   return (
     <div
-      className="board-modal"
-      role="dialog"
-      aria-modal="true"
+      className='board-modal'
+      role='dialog'
+      aria-modal='true'
       aria-label={event.name}
       onClick={onClose}
       ref={overlayRef}
     >
-      <div className="board-panel" onClick={(e) => e.stopPropagation()} ref={panelRef}>
-        <header className="board-head">
+      <div
+        className='board-panel'
+        onClick={(e) => e.stopPropagation()}
+        ref={panelRef}
+      >
+        <header className='board-head'>
           <h3>{event.name}</h3>
-          <button type="button" onClick={onClose} aria-label="关闭">
+          <button type='button' onClick={onClose} aria-label='关闭'>
             <X size={18} />
           </button>
         </header>
 
         {days.length > 1 && (
-          <div className="board-tabs" role="tablist">
+          <div className='board-tabs' role='tablist'>
             {days.map((d, i) => (
               <button
                 key={d.day}
-                type="button"
-                role="tab"
+                type='button'
+                role='tab'
                 aria-selected={i === dayIndex}
                 className={`board-tab${i === dayIndex ? " is-active" : ""}`}
                 onClick={() => setDayIndex(i)}
@@ -231,32 +262,36 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
           </div>
         )}
 
-        <p className="board-rules">
+        <p className='board-rules'>
           {days.length > 1 && <>Day {active.day} · </>}
           低保线 <strong>{active.minScore.toLocaleString()}</strong> 分 · 上限{" "}
           <strong>{active.maxScore.toLocaleString()}</strong> 分
         </p>
 
-        <table className="board-table">
+        <table className='board-table'>
           <thead>
             <tr>
               <th>材料</th>
-              <th className="board-num">分值</th>
-              <th className="board-num">最大可使用量</th>
+              <th className='board-num'>分值</th>
+              <th className='board-num'>单项最大可使用量</th>
             </tr>
           </thead>
           <tbody>
             {active.materials.map((m) => (
               <tr key={m.name}>
                 <td>{m.name}</td>
-                <td className="board-points">{m.points}</td>
-                <td className="board-max">{Math.floor(active.maxScore / m.points).toLocaleString()}</td>
+                <td className='board-points'>{m.points}</td>
+                <td className='board-max'>
+                  {Math.floor(active.maxScore / m.points).toLocaleString()}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <p className="board-foot">「最大可使用量」为达到上限所需数量，超出上限需接受惩罚。</p>
+        <p className='board-foot'>
+          「最大可使用量」为达到上限所需数量，超出上限需接受惩罚。
+        </p>
       </div>
     </div>
   );
@@ -293,23 +328,35 @@ export default function GameCalendar() {
     };
   }, [boardEvent]);
 
-  const startMonday = useMemo(() => (now > 0 ? currentWeekMondayUtc(now) : 0), [now]);
+  const startMonday = useMemo(
+    () => (now > 0 ? currentWeekMondayUtc(now) : 0),
+    [now],
+  );
   const layout = useMemo(
     () => (now > 0 ? buildCalendarLayout(data, startMonday, WEEK_COUNT) : []),
     [data, startMonday, now],
   );
 
   return (
-    <section className="section" id="calendar">
-      <div className="shell">
-        <div className="section-heading">
+    <section className='section' id='calendar'>
+      <div className='shell'>
+        <div className='section-heading'>
           <h2>四周活动日历</h2>
-          <p className="cal-legend-note">北京时间 · 灰色为已过去，高亮为今天。</p>
+          <p className='cal-legend-note'>
+            北京时间 · 灰色为已过去，高亮为今天。
+          </p>
         </div>
-        <CalendarGrid data={data} layout={layout} now={now} onBoardClick={setBoardEvent} />
+        <CalendarGrid
+          data={data}
+          layout={layout}
+          now={now}
+          onBoardClick={setBoardEvent}
+        />
       </div>
 
-      {boardEvent && <BoardModal event={boardEvent} onClose={() => setBoardEvent(null)} />}
+      {boardEvent && (
+        <BoardModal event={boardEvent} onClose={() => setBoardEvent(null)} />
+      )}
     </section>
   );
 }

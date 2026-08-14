@@ -285,8 +285,15 @@ export function normalizeCalendarData(raw: unknown): CalendarData {
         }
       }
 
+      const id = typeof item.id === "string" && item.id ? item.id : `event-${i}`;
+
+      // 若已存储数据未携带榜详情，回退到默认数据的同 id 榜（保证可点击查看详情）
+      if (!board) {
+        board = DEFAULT_CALENDAR_DATA.events.find((e) => e.id === id)?.board;
+      }
+
       return {
-        id: typeof item.id === "string" && item.id ? item.id : `event-${i}`,
+        id,
         name: String(item.name ?? ""),
         weeks: weeks.length > 0 ? weeks : [1],
         weekday,
