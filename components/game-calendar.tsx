@@ -14,7 +14,7 @@ import {
   WEEKDAY_LABELS,
 } from "@/lib/calendar-logic";
 
-const WEEK_COUNT = 8;
+const WEEK_COUNT = 4;
 
 function formatRange(start: number, end: number): string {
   const s = formatBeijingDay(start);
@@ -45,7 +45,7 @@ function CalendarGrid({
     <div className="cal-scroll">
       <div className="cal-grid">
         <div className="cal-weekdays">
-          <span>周期</span>
+          <span>主题</span>
           {WEEKDAY_LABELS.map((label) => (
             <span key={label}>{label}</span>
           ))}
@@ -60,8 +60,7 @@ function CalendarGrid({
               style={{ gridTemplateRows: `repeat(${rows}, var(--cal-row))` }}
             >
               <div className="cal-cycle-label" style={{ gridRow: "1 / -1" }}>
-                <strong>第 {week.cycleWeek} 周</strong>
-                <small>{cycleTheme(data, week.cycleWeek)}</small>
+                <strong>{cycleTheme(data, week.cycleWeek)}</strong>
               </div>
 
               {week.days.map((day, i) => {
@@ -133,7 +132,7 @@ export default function GameCalendar() {
     <section className="section" id="calendar">
       <div className="shell">
         <div className="section-heading">
-          <h2>八周活动日历</h2>
+          <h2>四周活动日历</h2>
           <p className="cal-legend-note">北京时间 · 灰色为已过去，高亮为今天。</p>
         </div>
         <CalendarGrid data={data} layout={layout} now={now} />

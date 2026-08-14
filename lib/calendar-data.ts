@@ -29,9 +29,9 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
   cycleAnchor: "2026-08-10",
   cycleWeeks: [
     { week: 1, theme: "最强王国" },
-    { week: 2, theme: "联盟大作战 · 联盟争霸赛" },
+    { week: 2, theme: "联盟大作战" },
     { week: 3, theme: "冻土之王" },
-    { week: 4, theme: "其他活动（待定）" },
+    { week: 4, theme: "联盟总动员" },
   ],
   events: [
     {
@@ -48,15 +48,6 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       weeks: [2],
       weekday: 1,
       durationDays: 7,
-      note: "第 2 周周一开始，时长可调。",
-    },
-    {
-      id: "alliance-showdown",
-      name: "联盟争霸赛",
-      weeks: [2],
-      weekday: 1,
-      durationDays: 7,
-      note: "第 2 周周一开始，与联盟大作战同期，时长可调。",
     },
     {
       id: "frost-king",
@@ -64,15 +55,13 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       weeks: [3],
       weekday: 1,
       durationDays: 7,
-      note: "第 3 周。",
     },
     {
-      id: "week4-other",
-      name: "其他活动（待定）",
+      id: "alliance-mobilization",
+      name: "联盟总动员",
       weeks: [4],
       weekday: 1,
       durationDays: 7,
-      note: "第 4 周，名称待定。",
     },
     {
       id: "frostburn-mine",
