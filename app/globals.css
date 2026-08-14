@@ -674,6 +674,13 @@ button {
   margin: 2px 0 0;
 }
 
+.rules-privilege-card p {
+  margin: 0;
+  color: #c3d4e2;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
 /* 价值观 */
 .values-list {
   display: grid;

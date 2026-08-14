@@ -6,6 +6,8 @@ import {
   Camera,
   Check,
   ChevronRight,
+  Crown,
+  Gem,
   Link2,
   MapPin,
   ShieldAlert,
@@ -473,6 +475,29 @@ export default function Home() {
               <li>无正当理由且多次提醒后仍拒绝处理的，处罚升级一级。</li>
             </ol>
           </article>
+
+          <div className='rules-detail-grid'>
+            <article className='rules-card rules-copy-card'>
+              <div className='rules-card-title'>
+                <Gem size={18} />
+                <h3>资源分配</h3>
+              </div>
+              <ol>
+                <li>
+                  按照国战备战期间联盟积分比例，分配每个月的堡垒要塞首占资格。
+                </li>
+                <li>国战个人排名前 20 拉满所有堡垒要塞奖励。</li>
+              </ol>
+            </article>
+
+            <article className='rules-card rules-privilege-card'>
+              <div className='rules-card-title'>
+                <Crown size={18} />
+                <h3>管理特权</h3>
+              </div>
+              <p>管理无任何特权。</p>
+            </article>
+          </div>
         </div>
       </section>
 
