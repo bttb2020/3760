@@ -522,7 +522,7 @@ export default function ManagementPage() {
         <section className="admin-section">
           <h2>游戏日历数据</h2>
           <p className="admin-hint">
-            以 JSON 编辑 /calendar 页的礼包与活动日程（UTC）。保存后日历页即刻生效。
+            以 JSON 编辑 /calendar 页的活动日程（北京时间，4 周周期）。保存后日历页即刻生效。
           </p>
           <textarea
             className="admin-calendar-json"

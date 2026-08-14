@@ -1,108 +1,89 @@
-import type { CalendarObservation, CalendarSchedule } from "./calendar-data";
+import type { CalendarData, CycleEvent } from "./calendar-data";
 
 export const DAY_MS = 86_400_000;
 export const HOUR_MS = 3_600_000;
+/** 北京时间 = UTC+8 */
+export const BEIJING_OFFSET_MS = 8 * HOUR_MS;
+const CYCLE_DAYS = 28;
 
 export type Occurrence = {
   id: string;
-  item: CalendarSchedule;
-  start: number;
-  end: number;
-  projected: boolean;
+  event: CycleEvent;
+  start: number; // UTC ms
+  end: number; // UTC ms
 };
 
-export function parseUtc(iso: string): number {
-  const t = new Date(iso).getTime();
-  return Number.isNaN(t) ? NaN : t;
+/* ---------- 北京时间工具 ---------- */
+
+export function beijingParts(ms: number): { y: number; m: number; d: number } {
+  const d = new Date(ms + BEIJING_OFFSET_MS);
+  return { y: d.getUTCFullYear(), m: d.getUTCMonth(), d: d.getUTCDate() };
 }
 
-/** 当前 UTC 时间所在周的周一 00:00 UTC。 */
-export function weekStartUtc(now: number): number {
-  const d = new Date(now);
-  const offset = (d.getUTCDay() + 6) % 7; // Mon=0 .. Sun=6
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - offset * DAY_MS;
+/** 该时刻所在北京日期当天的 00:00（以 UTC ms 表示）。 */
+export function beijingMidnightUtc(ms: number): number {
+  const { y, m, d } = beijingParts(ms);
+  return Date.UTC(y, m, d) - BEIJING_OFFSET_MS;
 }
 
-function latestObservation(item: CalendarSchedule): CalendarObservation | undefined {
-  let best: CalendarObservation | undefined;
-  let bestT = -Infinity;
-  for (const o of item.observations) {
-    const t = parseUtc(o.startsAtUtc);
-    if (Number.isNaN(t)) continue;
-    if (t > bestT) {
-      bestT = t;
-      best = o;
-    }
-  }
-  return best;
+/** "YYYY-MM-DD" 解析为北京当天 00:00 的 UTC ms。 */
+export function parseBeijingDate(dateStr: string): number {
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return NaN;
+  return Date.UTC(parts[0], parts[1] - 1, parts[2]) - BEIJING_OFFSET_MS;
 }
 
-/** 生成 [from, to] 区间内的活动/礼包出现区间（含推算）。 */
+/** 当前北京时间所在周的周一 00:00（以 UTC ms 表示）。 */
+export function currentWeekMondayUtc(now: number): number {
+  const { y, m, d } = beijingParts(now);
+  const dayOfWeek = new Date(Date.UTC(y, m, d)).getUTCDay(); // 0=周日 … 6=周六
+  const offset = (dayOfWeek + 6) % 7; // 周一=0 … 周日=6
+  return Date.UTC(y, m, d) - offset * DAY_MS - BEIJING_OFFSET_MS;
+}
+
+/** 计算某个周一（UTC ms）属于周期第几周（1-4）。 */
+export function cycleWeekNumber(mondayUtcMs: number, anchorUtcMs: number): number {
+  const diffWeeks = Math.round((mondayUtcMs - anchorUtcMs) / (7 * DAY_MS));
+  return ((diffWeeks % 4) + 4) % 4 + 1;
+}
+
+export function cycleTheme(data: CalendarData, weekNumber: number): string {
+  return data.cycleWeeks.find((w) => w.week === weekNumber)?.theme ?? `第 ${weekNumber} 周`;
+}
+
+/* ---------- 周期推算 ---------- */
+
 export function buildOccurrences(
-  schedules: CalendarSchedule[],
-  from: number,
-  to: number,
-  rotation: "A" | "B",
+  events: CycleEvent[],
+  anchorUtc: number,
+  fromUtc: number,
+  toUtc: number,
 ): Occurrence[] {
   const out: Occurrence[] = [];
+  const period = CYCLE_DAYS * DAY_MS;
 
-  for (const item of schedules) {
-    const anchors = item.observations
-      .map((o) => ({ o, t: parseUtc(o.startsAtUtc) }))
-      .filter((x) => !Number.isNaN(x.t))
-      .sort((a, b) => a.t - b.t);
-    if (anchors.length === 0) continue;
-
-    const last = anchors[anchors.length - 1];
-    const anchorSet = new Set(anchors.map((x) => x.t));
-    const durationHours = last.o.durationHours ?? 24;
-    const durationMs = durationHours * HOUR_MS;
-
-    if (item.repeatEveryDays && item.repeatEveryDays > 0) {
-      let base = last.t;
-      if (item.rotationOffsetsDays) {
-        base += (item.rotationOffsetsDays[rotation] ?? 0) * DAY_MS;
-      }
-      const period = item.repeatEveryDays * DAY_MS;
-      const kStart = Math.ceil((from - durationMs - base) / period);
-      const kEnd = Math.floor((to - base) / period);
+  for (const ev of events) {
+    for (const w of ev.weeks) {
+      const baseDay = anchorUtc + (w - 1) * 7 * DAY_MS + (ev.weekday - 1) * DAY_MS;
+      const durationMs = ev.durationDays * DAY_MS;
+      const kStart = Math.ceil((fromUtc - durationMs - baseDay) / period);
+      const kEnd = Math.floor((toUtc - baseDay) / period);
       for (let k = kStart; k <= kEnd; k++) {
-        const start = base + k * period;
-        out.push({
-          id: `${item.id}-${k}`,
-          item,
-          start,
-          end: start + durationMs,
-          projected: !anchorSet.has(start),
-        });
-      }
-    } else {
-      // 周期未确定：仅展示已确认窗口，不做推算
-      for (const { o, t } of anchors) {
-        const dur = (o.durationHours ?? durationHours) * HOUR_MS;
-        const end = t + dur;
-        if (end <= from || t >= to) continue;
-        out.push({ id: o.id, item, start: t, end, projected: false });
+        const start = baseDay + k * period;
+        const end = start + durationMs;
+        if (end <= fromUtc || start >= toUtc) continue;
+        out.push({ id: `${ev.id}-${w}-${k}`, event: ev, start, end });
       }
     }
   }
 
-  return out;
-}
-
-export type Week = { start: number; days: number[] };
-
-export function buildWeeks(startMonday: number, count: number): Week[] {
-  return Array.from({ length: count }, (_, w) => ({
-    start: startMonday + w * 7 * DAY_MS,
-    days: Array.from({ length: 7 }, (_, d) => startMonday + (w * 7 + d) * DAY_MS),
-  }));
+  return out.sort((a, b) => a.start - b.start);
 }
 
 export type Placement = {
   occ: Occurrence;
-  colStart: number; // 0..6
-  colEnd: number; // 1..7 (exclusive)
+  colStart: number; // 0..6（周一..周日）
+  colEnd: number; // 1..7（exclusive）
   lane: number;
   continuesBefore: boolean;
   continuesAfter: boolean;
@@ -111,23 +92,23 @@ export type Placement = {
 export type WeekLayout = {
   weekStart: number;
   days: number[];
+  cycleWeek: number;
   placements: Placement[];
   laneCount: number;
 };
 
-/** 八周日历布局：按周切片 + 泳道排布，避免同一天内重叠。 */
 export function buildCalendarLayout(
-  schedules: CalendarSchedule[],
-  startMonday: number,
+  data: CalendarData,
+  startMondayUtc: number,
   weekCount: number,
-  rotation: "A" | "B",
 ): WeekLayout[] {
-  const totalEnd = startMonday + weekCount * 7 * DAY_MS;
-  const occs = buildOccurrences(schedules, startMonday, totalEnd, rotation);
+  const anchorUtc = parseBeijingDate(data.cycleAnchor);
+  const totalEnd = startMondayUtc + weekCount * 7 * DAY_MS;
+  const occs = buildOccurrences(data.events, anchorUtc, startMondayUtc, totalEnd);
 
   const weeks: WeekLayout[] = [];
   for (let w = 0; w < weekCount; w++) {
-    const weekStart = startMonday + w * 7 * DAY_MS;
+    const weekStart = startMondayUtc + w * 7 * DAY_MS;
     const weekEnd = weekStart + 7 * DAY_MS;
 
     const inWeek = occs
@@ -167,6 +148,7 @@ export function buildCalendarLayout(
     weeks.push({
       weekStart,
       days: Array.from({ length: 7 }, (_, d) => weekStart + d * DAY_MS),
+      cycleWeek: cycleWeekNumber(weekStart, anchorUtc),
       placements,
       laneCount: laneEnds.length,
     });
@@ -179,15 +161,20 @@ export type QuickEntry = { occ: Occurrence; active: boolean };
 
 /** 当前正在进行的 + 未来 horizonDays 天内的即将开始项。 */
 export function buildQuickSchedule(
-  schedules: CalendarSchedule[],
-  now: number,
-  rotation: "A" | "B",
+  data: CalendarData,
+  nowUtc: number,
   horizonDays = 7,
 ): QuickEntry[] {
-  const occs = buildOccurrences(schedules, now - 14 * DAY_MS, now + horizonDays * DAY_MS, rotation);
+  const anchorUtc = parseBeijingDate(data.cycleAnchor);
+  const occs = buildOccurrences(
+    data.events,
+    anchorUtc,
+    nowUtc - 14 * DAY_MS,
+    nowUtc + horizonDays * DAY_MS,
+  );
   return occs
-    .filter((occ) => occ.end > now)
-    .map((occ) => ({ occ, active: occ.start <= now && occ.end > now }))
+    .filter((o) => o.end > nowUtc)
+    .map((o) => ({ occ: o, active: o.start <= nowUtc && o.end > nowUtc }))
     .sort((a, b) => {
       if (a.active !== b.active) return a.active ? -1 : 1;
       const keyA = a.active ? a.occ.end : a.occ.start;
@@ -196,41 +183,28 @@ export function buildQuickSchedule(
     });
 }
 
-/* ---------- 格式化 ---------- */
+/* ---------- 格式化（北京时间） ---------- */
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-export function formatUtcDate(ms: number): string {
-  const d = new Date(ms);
-  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+export function formatBeijingDate(ms: number): string {
+  const { y, m, d } = beijingParts(ms);
+  return `${y}-${pad2(m + 1)}-${pad2(d)}`;
 }
 
-export function formatUtcTime(ms: number): string {
-  const d = new Date(ms);
-  return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
-}
-
-export function formatUtcClock(ms: number): string {
-  const d = new Date(ms);
+export function formatBeijingClock(ms: number): string {
+  const d = new Date(ms + BEIJING_OFFSET_MS);
   return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}:${pad2(d.getUTCSeconds())}`;
 }
 
-export function durationLabel(hours: number): string {
-  const days = Math.floor(hours / 24);
-  const rem = Math.round(hours % 24);
-  if (days && rem) return `${days} 天 ${rem} 小时`;
-  if (days) return `${days} 天`;
-  return `${hours} 小时`;
+export function formatBeijingDay(ms: number): string {
+  const d = new Date(ms + BEIJING_OFFSET_MS);
+  return `${pad2(d.getUTCMonth() + 1)}/${pad2(d.getUTCDate())}`;
 }
 
-export function recurrenceLabel(item: CalendarSchedule): string {
-  if (item.repeatEveryDays) {
-    const weeks = item.repeatEveryDays / 7;
-    if (Number.isInteger(weeks) && weeks > 1) return `每 ${weeks} 周`;
-    if (item.repeatEveryDays === 7) return "每周";
-    return `每 ${item.repeatEveryDays} 天`;
-  }
-  return "周期未确定";
+export function durationLabel(days: number): string {
+  if (days === 1) return "1 天";
+  return `${days} 天`;
 }
 
 export type DurationParts = { days: number; hours: number; minutes: number };
@@ -249,14 +223,6 @@ export function diffHuman(from: number, to: number): string {
   if (p.days > 0) return `${p.days} 天 ${p.hours} 小时`;
   if (p.hours > 0) return `${p.hours} 小时 ${p.minutes} 分`;
   return `${p.minutes} 分钟`;
-}
-
-/** “距上次出现”人类可读（用于非常规活动）。 */
-export function sinceHuman(from: number, now: number): string {
-  const weeks = Math.floor((now - from) / (7 * DAY_MS));
-  const days = Math.floor(((now - from) % (7 * DAY_MS)) / DAY_MS);
-  if (weeks > 0) return `${weeks} 周 ${days} 天`;
-  return `${days} 天`;
 }
 
 export const WEEKDAY_LABELS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];

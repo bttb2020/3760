@@ -1127,23 +1127,14 @@ footer .shell {
   }
 }
 
-/* 分类圆点 */
+/* 圆点 */
 .cal-dot {
   display: inline-block;
   width: 9px;
   height: 9px;
   border-radius: 3px;
   flex: none;
-}
-
-.cal-dot.is-pack,
-.cal-toggle-dot.is-pack {
   background: var(--ice);
-}
-
-.cal-dot.is-event,
-.cal-toggle-dot.is-event {
-  background: var(--rose);
 }
 
 /* 当前时段 */
@@ -1186,18 +1177,11 @@ footer .shell {
   font-size: 14px;
 }
 
-.quick-name > span {
+.quick-name > span:last-child {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.quick-name small {
-  display: block;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 500;
 }
 
 .quick-window {
@@ -1218,47 +1202,7 @@ footer .shell {
   font-weight: 700;
 }
 
-/* 开关 */
-.cal-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.cal-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.cal-toggle.is-on.is-pack {
-  border-color: rgba(124, 212, 252, 0.4);
-  background: rgba(124, 212, 252, 0.12);
-  color: var(--ice);
-}
-
-.cal-toggle.is-on.is-event {
-  border-color: rgba(251, 113, 133, 0.4);
-  background: rgba(251, 113, 133, 0.12);
-  color: var(--rose);
-}
-
-.cal-toggle-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
-/* 日历网格 */
+/* 日历网格（8 列：周期 + 7 天） */
 .cal-scroll {
   overflow-x: auto;
   border: 1px solid var(--line);
@@ -1267,13 +1211,13 @@ footer .shell {
 }
 
 .cal-grid {
-  min-width: 720px;
+  min-width: 800px;
 }
 
 .cal-weekdays,
 .cal-week {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: 104px repeat(7, minmax(0, 1fr));
 }
 
 .cal-weekdays {
@@ -1300,6 +1244,30 @@ footer .shell {
   border-bottom: 0;
 }
 
+.cal-cycle-label {
+  display: flex;
+  grid-column: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 8px;
+  border-right: 1px solid var(--line);
+  background: rgba(8, 18, 30, 0.4);
+  text-align: center;
+}
+
+.cal-cycle-label strong {
+  color: var(--ice);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cal-cycle-label small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
 .cal-day {
   position: relative;
   min-height: var(--cal-row);
@@ -1307,7 +1275,7 @@ footer .shell {
   border-bottom: 1px solid rgba(148, 190, 220, 0.08);
 }
 
-.cal-week:nth-last-child(1) .cal-day {
+.cal-week:last-child .cal-day {
   border-bottom: 0;
 }
 
@@ -1343,27 +1311,12 @@ footer .shell {
   min-width: 0;
   margin: 2px 3px;
   padding: 2px 6px;
-  border: 1px solid;
+  border: 1px solid rgba(56, 189, 248, 0.42);
   border-radius: 6px;
-  overflow: hidden;
-  line-height: 1.15;
-}
-
-.cal-block.is-pack {
-  border-color: rgba(56, 189, 248, 0.42);
   background: rgba(56, 189, 248, 0.18);
   color: #bae6fd;
-}
-
-.cal-block.is-event {
-  border-color: rgba(251, 113, 133, 0.42);
-  background: rgba(251, 113, 133, 0.16);
-  color: #fecdd3;
-}
-
-.cal-block.is-projected {
-  border-style: dashed;
-  opacity: 0.62;
+  overflow: hidden;
+  line-height: 1.15;
 }
 
 .cal-block-name {
@@ -1372,14 +1325,6 @@ footer .shell {
   white-space: nowrap;
   font-size: 10px;
   font-weight: 800;
-}
-
-.cal-block-name i {
-  margin-left: 4px;
-  font-style: normal;
-  font-size: 8px;
-  font-weight: 600;
-  opacity: 0.8;
 }
 
 .cal-block-time {
@@ -1391,288 +1336,82 @@ footer .shell {
   opacity: 0.8;
 }
 
-.cal-legend {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.cal-legend .cal-toggle-dot {
-  width: 8px;
-  height: 8px;
-}
-
 .cal-legend-note {
   color: var(--muted);
 }
 
-/* 非常规活动历史 */
-.cal-irregular-heading {
-  align-items: center;
+/* 周期说明 */
+.cycle-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.irregular-grid {
+.cycle-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 
-.irregular-card {
-  border: 1px solid rgba(251, 191, 36, 0.22);
+.cycle-card {
+  padding: 22px;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
-  overflow: hidden;
 }
 
-.irregular-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--line);
-}
-
-.irregular-kind {
-  color: #fcd34d;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.irregular-head h3 {
-  margin: 6px 0 0;
-  font-size: 20px;
-  letter-spacing: -0.02em;
-}
-
-.irregular-head h3 small {
+.cycle-card span {
   display: block;
-  margin-top: 2px;
   color: var(--muted);
   font-size: 11px;
-  font-weight: 500;
+  letter-spacing: 0.08em;
 }
 
-.irregular-duration {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.irregular-count {
-  padding: 5px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #c3d4e2;
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.irregular-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.sighting {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--line);
-}
-
-.sighting:last-child {
-  border-bottom: 0;
-}
-
-.sighting-label {
+.cycle-card strong {
   display: block;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.sighting strong {
-  display: block;
-  margin-top: 5px;
-  color: #e8f1f8;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.sighting p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.sighting-side {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.sighting-duration {
-  display: block;
-  color: #fcd34d;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.sighting-since-label {
-  display: block;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.sighting-since {
-  display: block;
-  margin-top: 2px;
-  color: #c3d4e2;
-  font-size: 12px;
-}
-
-.irregular-empty {
-  margin: 0;
-  padding: 22px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-/* 日程收录 */
-.tracked-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.tracked-col {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tracked-title {
-  margin: 0;
+  margin-top: 8px;
   color: var(--ice);
   font-size: 16px;
+  line-height: 1.4;
 }
 
-.tracked-sub {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.tracked-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.tracked-item {
-  padding: 16px 18px;
+.cycle-fixed {
+  padding: 20px 22px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--panel);
 }
 
-.tracked-item-head {
+.cycle-fixed h3 {
+  margin: 0 0 14px;
+  color: var(--ice);
+  font-size: 14px;
+}
+
+.cycle-fixed ul {
   display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.tracked-item-head h4 {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: 0;
-  font-size: 15px;
-  min-width: 0;
-}
-
-.tracked-item-head h4 small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.tracked-badge {
-  margin-left: auto;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(52, 211, 153, 0.14);
-  color: #6ee7b7;
-  font-size: 10px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.tracked-badge.is-warn {
-  background: rgba(251, 191, 36, 0.14);
-  color: #fcd34d;
-}
-
-.tracked-pending-icon {
-  color: #fcd34d;
-  flex: none;
-}
-
-.tracked-meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  flex-direction: column;
   gap: 10px;
-  margin: 14px 0 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.tracked-meta dt {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.cycle-fixed li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+  font-size: 13px;
 }
 
-.tracked-meta dd {
-  margin: 3px 0 0;
+.cycle-fixed li strong {
   color: #c3d4e2;
-  font-size: 12px;
-  font-weight: 600;
 }
 
-.tracked-note {
-  margin: 12px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+.cycle-fixed li span {
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.7;
-}
-
-.tracked-warn {
-  margin: 12px 0 0;
-  padding: 9px 12px;
-  border-radius: 9px;
-  background: rgba(251, 191, 36, 0.08);
-  color: #fcd34d;
-  font-size: 12px;
-  font-weight: 700;
 }
 
 @media (max-width: 860px) {
@@ -1698,12 +1437,7 @@ footer .shell {
     order: 3;
   }
 
-  .irregular-grid,
-  .tracked-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tracked-meta {
-    grid-template-columns: 1fr;
+  .cycle-cards {
+    grid-template-columns: 1fr 1fr;
   }
 }
