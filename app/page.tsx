@@ -16,7 +16,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import SiteHeader from "@/components/site-header";
+import GameCalendar from "@/components/game-calendar";
 import Snowfall from "@/components/snowfall";
 import {
   DEFAULT_SITE_DATA,
@@ -192,7 +192,6 @@ export default function Home() {
 
   return (
     <main>
-      <SiteHeader />
       <Snowfall />
 
       <section className='hero' id='top'>
@@ -266,6 +265,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <GameCalendar />
 
       <section className='section' id='album'>
         <div className='shell'>
