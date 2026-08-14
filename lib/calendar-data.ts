@@ -4,12 +4,18 @@ export type BoardMaterial = {
   points: number;
 };
 
-export type Board = {
+export type BoardDay = {
+  /** 第几天（1-based） */
+  day: number;
   /** 低保线（分） */
   minScore: number;
   /** 上限（分） */
   maxScore: number;
   materials: BoardMaterial[];
+};
+
+export type Board = {
+  days: BoardDay[];
 };
 
 export type CycleEvent = {
@@ -73,18 +79,23 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       durationDays: 2,
       note: "联盟大作战周周一、周二。",
       board: {
-        minScore: 20000,
-        maxScore: 100000,
-        materials: [
-          { name: "火晶", points: 100 },
-          { name: "微粒", points: 50 },
-          { name: "专家印记", points: 200 },
-          { name: "专家书", points: 2 },
-          { name: "领主", points: 3 },
-          { name: "橙碎", points: 125 },
-          { name: "紫碎", points: 50 },
-          { name: "蓝碎", points: 15 },
-          { name: "加速1分钟", points: 1 },
+        days: [
+          {
+            day: 1,
+            minScore: 20000,
+            maxScore: 100000,
+            materials: [
+              { name: "火晶", points: 100 },
+              { name: "微粒", points: 50 },
+              { name: "专家印记", points: 200 },
+              { name: "专家书", points: 2 },
+              { name: "领主", points: 3 },
+              { name: "橙碎", points: 125 },
+              { name: "紫碎", points: 50 },
+              { name: "蓝碎", points: 15 },
+              { name: "加速1分钟", points: 1 },
+            ],
+          },
         ],
       },
     },
@@ -94,6 +105,107 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       weeks: [3],
       weekday: 1,
       durationDays: 7,
+      note: "第 3 周，7 天榜。",
+      board: {
+        days: [
+          {
+            day: 1,
+            minScore: 333000,
+            maxScore: 1665000,
+            materials: [
+              { name: "火晶", points: 2000 },
+              { name: "加速1分钟", points: 30 },
+              { name: "宝石", points: 70 },
+            ],
+          },
+          {
+            day: 2,
+            minScore: 312000,
+            maxScore: 1560000,
+            materials: [
+              { name: "火晶", points: 2000 },
+              { name: "专家印记", points: 6000 },
+              { name: "学识之书", points: 60 },
+              { name: "加速1分钟", points: 30 },
+              { name: "小筑抽奖", points: 8000 },
+              { name: "橙碎", points: 3040 },
+              { name: "紫碎", points: 1220 },
+              { name: "蓝碎", points: 350 },
+              { name: "专精", points: 4000 },
+              { name: "专武", points: 8000 },
+              { name: "秘银", points: 144000 },
+            ],
+          },
+          {
+            day: 3,
+            minScore: 362000,
+            maxScore: 1810000,
+            materials: [
+              { name: "宠物突破", points: 50 },
+              { name: "橙色石头", points: 15000 },
+              { name: "蓝色石头", points: 1150 },
+              { name: "专家印记", points: 6000 },
+              { name: "学识之书", points: 60 },
+              { name: "专家加速1分钟", points: 30 },
+              { name: "宝石", points: 70 },
+              { name: "小筑抽奖", points: 8000 },
+              { name: "橙碎", points: 3040 },
+              { name: "紫碎", points: 1220 },
+              { name: "蓝碎", points: 350 },
+            ],
+          },
+          {
+            day: 4,
+            minScore: 362000,
+            maxScore: 1810000,
+            materials: [
+              { name: "宝石", points: 70 },
+              { name: "专精", points: 4000 },
+              { name: "专武", points: 8000 },
+              { name: "秘银", points: 144000 },
+              { name: "爆兵", points: 39 },
+            ],
+          },
+          {
+            day: 5,
+            minScore: 289000,
+            maxScore: 1445000,
+            materials: [
+              { name: "专精", points: 4000 },
+              { name: "专武", points: 8000 },
+              { name: "秘银", points: 144000 },
+              { name: "火晶", points: 2000 },
+              { name: "加速1分钟", points: 30 },
+            ],
+          },
+          {
+            day: 6,
+            minScore: 380000,
+            maxScore: 1900000,
+            materials: [
+              { name: "领主装备", points: 36 },
+              { name: "爆兵", points: 39 },
+            ],
+          },
+          {
+            day: 7,
+            minScore: 350000,
+            maxScore: 1750000,
+            materials: [
+              { name: "宠物突破", points: 50 },
+              { name: "橙色石头", points: 15000 },
+              { name: "蓝色石头", points: 1150 },
+              { name: "领主装备", points: 36 },
+              { name: "火晶", points: 2000 },
+              { name: "加速1分钟", points: 30 },
+              { name: "橙碎", points: 3040 },
+              { name: "紫碎", points: 1220 },
+              { name: "蓝碎", points: 350 },
+              { name: "挖8级矿", points: 16800 },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "alliance-mobilization",
@@ -145,21 +257,31 @@ export function normalizeCalendarData(raw: unknown): CalendarData {
       let board: Board | undefined;
       if (item.board && typeof item.board === "object") {
         const b = item.board as Record<string, unknown>;
-        const materials: BoardMaterial[] = (Array.isArray(b.materials) ? b.materials : [])
-          .map((m) => {
-            const mat = (m ?? {}) as Record<string, unknown>;
+        const days: BoardDay[] = (Array.isArray(b.days) ? b.days : [])
+          .map((d, di) => {
+            const dayObj = (d ?? {}) as Record<string, unknown>;
+            const materials: BoardMaterial[] = (Array.isArray(dayObj.materials)
+              ? dayObj.materials
+              : []
+            )
+              .map((m) => {
+                const mat = (m ?? {}) as Record<string, unknown>;
+                return {
+                  name: String(mat.name ?? ""),
+                  points: typeof mat.points === "number" ? mat.points : 0,
+                };
+              })
+              .filter((m) => m.name && m.points > 0);
             return {
-              name: String(mat.name ?? ""),
-              points: typeof mat.points === "number" ? mat.points : 0,
+              day: typeof dayObj.day === "number" ? Math.round(dayObj.day) : di + 1,
+              minScore: typeof dayObj.minScore === "number" ? dayObj.minScore : 0,
+              maxScore: typeof dayObj.maxScore === "number" ? dayObj.maxScore : 0,
+              materials,
             };
           })
-          .filter((m) => m.name && m.points > 0);
-        if (materials.length > 0) {
-          board = {
-            minScore: typeof b.minScore === "number" ? b.minScore : 0,
-            maxScore: typeof b.maxScore === "number" ? b.maxScore : 0,
-            materials,
-          };
+          .filter((d) => d.materials.length > 0);
+        if (days.length > 0) {
+          board = { days };
         }
       }
 

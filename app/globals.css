@@ -1564,6 +1564,35 @@ footer .shell {
   font-variant-numeric: tabular-nums;
 }
 
+.board-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+}
+
+.board-tab {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.board-tab:hover {
+  color: var(--text);
+  border-color: var(--ice-deep);
+}
+
+.board-tab.is-active {
+  border-color: rgba(124, 212, 252, 0.5);
+  background: rgba(124, 212, 252, 0.12);
+  color: var(--ice);
+}
+
 .board-table {
   width: 100%;
   border-collapse: collapse;

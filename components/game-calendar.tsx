@@ -155,6 +155,7 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
   const board = event.board;
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const [dayIndex, setDayIndex] = useState(0);
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -171,21 +172,30 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
       { opacity: 1, scale: 1, y: 0, duration: 0.32, ease: "back.out(1.4)" },
       0,
     );
-    const rows = panel.querySelectorAll<HTMLElement>(".board-table tbody tr");
-    if (rows.length > 0) {
-      tl.fromTo(
-        rows,
-        { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.25, stagger: 0.035, ease: "power2.out" },
-        0.12,
-      );
-    }
     return () => {
       tl.kill();
     };
   }, []);
 
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const rows = panel.querySelectorAll<HTMLElement>(".board-table tbody tr");
+    if (rows.length === 0) return;
+    const tl = gsap.fromTo(
+      rows,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.25, stagger: 0.035, ease: "power2.out", delay: 0.1 },
+    );
+    return () => {
+      tl.kill();
+    };
+  }, [dayIndex]);
+
   if (!board) return null;
+
+  const days = board.days;
+  const active = days[Math.min(dayIndex, days.length - 1)];
 
   return (
     <div
@@ -204,9 +214,27 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
           </button>
         </header>
 
+        {days.length > 1 && (
+          <div className="board-tabs" role="tablist">
+            {days.map((d, i) => (
+              <button
+                key={d.day}
+                type="button"
+                role="tab"
+                aria-selected={i === dayIndex}
+                className={`board-tab${i === dayIndex ? " is-active" : ""}`}
+                onClick={() => setDayIndex(i)}
+              >
+                Day {d.day}
+              </button>
+            ))}
+          </div>
+        )}
+
         <p className="board-rules">
-          低保线 <strong>{board.minScore.toLocaleString()}</strong> 分 · 上限{" "}
-          <strong>{board.maxScore.toLocaleString()}</strong> 分
+          {days.length > 1 && <>Day {active.day} · </>}
+          低保线 <strong>{active.minScore.toLocaleString()}</strong> 分 · 上限{" "}
+          <strong>{active.maxScore.toLocaleString()}</strong> 分
         </p>
 
         <table className="board-table">
@@ -218,11 +246,11 @@ function BoardModal({ event, onClose }: { event: CycleEvent; onClose: () => void
             </tr>
           </thead>
           <tbody>
-            {board.materials.map((m) => (
+            {active.materials.map((m) => (
               <tr key={m.name}>
                 <td>{m.name}</td>
                 <td className="board-points">{m.points}</td>
-                <td className="board-max">{Math.floor(board.maxScore / m.points).toLocaleString()}</td>
+                <td className="board-max">{Math.floor(active.maxScore / m.points).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
