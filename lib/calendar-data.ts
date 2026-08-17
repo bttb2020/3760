@@ -100,6 +100,32 @@ export const DEFAULT_CALENDAR_DATA: CalendarData = {
       },
     },
     {
+      id: "officer-plan",
+      name: "士官计划",
+      weeks: [2],
+      weekday: 3,
+      durationDays: 1,
+      note: "联盟大作战周周三。",
+      board: {
+        days: [
+          {
+            day: 1,
+            minScore: 310000,
+            maxScore: 1550000,
+            materials: [
+              { name: "领主", points: 70 },
+              { name: "专精", points: 6000 },
+              { name: "专武", points: 12000 },
+              { name: "秘银", points: 216000 },
+              { name: "9级兵", points: 22 },
+              { name: "10级兵", points: 30 },
+              { name: "11级兵", points: 37 },
+            ],
+          },
+        ],
+      },
+    },
+    {
       id: "frost-king",
       name: "冻土之王",
       weeks: [3],
