@@ -265,70 +265,79 @@ const DEFAULT_CYCLE_WEEKS = DEFAULT_CALENDAR_DATA.cycleWeeks;
 export function normalizeCalendarData(raw: unknown): CalendarData {
   const source = (raw ?? {}) as Record<string, unknown>;
 
-  const events: CycleEvent[] = (Array.isArray(source.events) ? source.events : []).map(
-    (e, i) => {
-      const item = (e ?? {}) as Record<string, unknown>;
-      const weeks = (Array.isArray(item.weeks) ? item.weeks : [])
-        .map((w) => Number(w))
-        .filter((w) => Number.isFinite(w) && w >= 1 && w <= 4);
-      const weekday =
-        typeof item.weekday === "number" && item.weekday >= 1 && item.weekday <= 7
-          ? Math.round(item.weekday)
-          : 1;
-      const durationDays =
-        typeof item.durationDays === "number" && item.durationDays >= 1
-          ? Math.round(item.durationDays)
-          : 1;
+  const normalizeEvent = (rawEvent: unknown, i: number): CycleEvent => {
+    const item = (rawEvent ?? {}) as Record<string, unknown>;
+    const weeks = (Array.isArray(item.weeks) ? item.weeks : [])
+      .map((w) => Number(w))
+      .filter((w) => Number.isFinite(w) && w >= 1 && w <= 4);
+    const weekday =
+      typeof item.weekday === "number" && item.weekday >= 1 && item.weekday <= 7
+        ? Math.round(item.weekday)
+        : 1;
+    const durationDays =
+      typeof item.durationDays === "number" && item.durationDays >= 1
+        ? Math.round(item.durationDays)
+        : 1;
+    const id = typeof item.id === "string" && item.id ? item.id : `event-${i}`;
 
-      let board: Board | undefined;
-      if (item.board && typeof item.board === "object") {
-        const b = item.board as Record<string, unknown>;
-        const days: BoardDay[] = (Array.isArray(b.days) ? b.days : [])
-          .map((d, di) => {
-            const dayObj = (d ?? {}) as Record<string, unknown>;
-            const materials: BoardMaterial[] = (Array.isArray(dayObj.materials)
-              ? dayObj.materials
-              : []
-            )
-              .map((m) => {
-                const mat = (m ?? {}) as Record<string, unknown>;
-                return {
-                  name: String(mat.name ?? ""),
-                  points: typeof mat.points === "number" ? mat.points : 0,
-                };
-              })
-              .filter((m) => m.name && m.points > 0);
-            return {
-              day: typeof dayObj.day === "number" ? Math.round(dayObj.day) : di + 1,
-              minScore: typeof dayObj.minScore === "number" ? dayObj.minScore : 0,
-              maxScore: typeof dayObj.maxScore === "number" ? dayObj.maxScore : 0,
-              materials,
-            };
-          })
-          .filter((d) => d.materials.length > 0);
-        if (days.length > 0) {
-          board = { days };
-        }
+    let board: Board | undefined;
+    if (item.board && typeof item.board === "object") {
+      const b = item.board as Record<string, unknown>;
+      const days: BoardDay[] = (Array.isArray(b.days) ? b.days : [])
+        .map((d, di) => {
+          const dayObj = (d ?? {}) as Record<string, unknown>;
+          const materials: BoardMaterial[] = (Array.isArray(dayObj.materials)
+            ? dayObj.materials
+            : []
+          )
+            .map((m) => {
+              const mat = (m ?? {}) as Record<string, unknown>;
+              return {
+                name: String(mat.name ?? ""),
+                points: typeof mat.points === "number" ? mat.points : 0,
+              };
+            })
+            .filter((m) => m.name && m.points > 0);
+          return {
+            day: typeof dayObj.day === "number" ? Math.round(dayObj.day) : di + 1,
+            minScore: typeof dayObj.minScore === "number" ? dayObj.minScore : 0,
+            maxScore: typeof dayObj.maxScore === "number" ? dayObj.maxScore : 0,
+            materials,
+          };
+        })
+        .filter((d) => d.materials.length > 0);
+      if (days.length > 0) {
+        board = { days };
       }
+    }
 
-      const id = typeof item.id === "string" && item.id ? item.id : `event-${i}`;
+    // 若已存储数据未携带榜详情，回退到默认数据的同 id 榜（保证可点击查看详情）
+    if (!board) {
+      board = DEFAULT_CALENDAR_DATA.events.find((e) => e.id === id)?.board;
+    }
 
-      // 若已存储数据未携带榜详情，回退到默认数据的同 id 榜（保证可点击查看详情）
-      if (!board) {
-        board = DEFAULT_CALENDAR_DATA.events.find((e) => e.id === id)?.board;
-      }
+    return {
+      id,
+      name: String(item.name ?? ""),
+      weeks: weeks.length > 0 ? weeks : [1],
+      weekday,
+      durationDays,
+      note: typeof item.note === "string" ? item.note : undefined,
+      board,
+    };
+  };
 
-      return {
-        id,
-        name: String(item.name ?? ""),
-        weeks: weeks.length > 0 ? weeks : [1],
-        weekday,
-        durationDays,
-        note: typeof item.note === "string" ? item.note : undefined,
-        board,
-      };
-    },
-  );
+  // 以默认数据为底，已存储的同 id 事件覆盖其上；默认中新增的事件也会保留。
+  const storedEvents = (Array.isArray(source.events) ? source.events : []).map(normalizeEvent);
+  const storedById = new Map(storedEvents.map((e) => [e.id, e]));
+  const events: CycleEvent[] = DEFAULT_CALENDAR_DATA.events.map((def) => {
+    const stored = storedById.get(def.id);
+    return stored ? { ...def, ...stored } : def;
+  });
+  const defaultIds = new Set(DEFAULT_CALENDAR_DATA.events.map((e) => e.id));
+  for (const ev of storedEvents) {
+    if (!defaultIds.has(ev.id)) events.push(ev);
+  }
 
   const cycleWeeks: CycleWeek[] = (Array.isArray(source.cycleWeeks)
     ? source.cycleWeeks
